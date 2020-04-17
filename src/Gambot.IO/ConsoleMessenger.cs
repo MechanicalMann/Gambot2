@@ -31,14 +31,16 @@ namespace Gambot.IO
                 _log.Trace("Spinning up console listener thread.");
                 while (true)
                 {
-                    Console.Write(">\t");
+                    Console.Write("> ");
                     var message = Console.ReadLine();
                     if (!String.IsNullOrEmpty(message) && OnMessageReceived != null)
                     {
                         _log.Trace("Received message");
+                        var addressed = message.StartsWith("gambot, ", StringComparison.OrdinalIgnoreCase);
+                        if (addressed) message = message.Substring(8);
                         OnMessageReceived.Invoke(this, new OnMessageReceivedEventArgs
                         {
-                            Message = new Message(message, this),
+                            Message = new Message(addressed, false, false, message, "tty", "Human", null, this),
                         });
                     }
                 }
@@ -51,7 +53,7 @@ namespace Gambot.IO
         {
             _log.Trace("Disposing");
             if (_inputThread != null)
-                _inputThread.Abort();
+                _inputThread.Interrupt();
         }
     }
 }

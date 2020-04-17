@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using Gambot.Core;
+using Gambot.Data.InMemory;
 using Gambot.IO;
+using Gambot.Module.Factoid;
 using Gambot.Module.Say;
 
 namespace Gambot.Bot
@@ -15,8 +17,17 @@ namespace Gambot.Bot
             logger.Info("Starting the screaming robot.");
 
             // Temp implementation
+            var dataStoreProvider = new InMemoryDataStoreProvider();
+
             var listeners = new List<IListener>();
-            var responders = new List<IResponder> { new SayResponder() };
+            var responders = new List<IResponder>
+            {
+                new SayResponder(),
+                new AddFactoidResponder(dataStoreProvider),
+                new ForgetFactoidResponder(dataStoreProvider),
+                new LiteralFactoidResponder(dataStoreProvider),
+                new FactoidResponder(dataStoreProvider),
+            };
             var transformers = new List<ITransformer>();
 
             var messenger = new ConsoleMessenger(logger.GetChildLog("ConsoleMessenger"));
@@ -32,7 +43,7 @@ namespace Gambot.Bot
                 Environment.Exit(0);
             };
 
-            var result = processor.Initialize();
+            processor.Initialize();
 
             Thread.Sleep(Timeout.Infinite);
         }
@@ -93,12 +104,12 @@ namespace Gambot.Bot
 
         public void Trace(string message, params object[] formatArgs)
         {
-            WriteLog("TRACE", message, formatArgs);
+            // WriteLog("TRACE", message, formatArgs);
         }
 
         public void Trace(Exception ex, string message, params object[] formatArgs)
         {
-            WriteLog("TRACE", message, formatArgs);
+            // WriteLog("TRACE", message, formatArgs);
             Console.WriteLine(ex.ToString());
         }
 

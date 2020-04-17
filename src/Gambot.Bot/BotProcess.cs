@@ -47,14 +47,28 @@ namespace Gambot.Bot
             var message = e.Message;
 
             _log.Trace("Processing listeners");
-            await Task.WhenAll(_listeners.Select(async l => await l.Listen(message)));
+            await Task.WhenAll(_listeners.Select(async l =>
+            {
+                try { await l.Listen(message); }
+                catch (Exception ex)
+                {
+                    _log.Error(ex, $"An error occurred while {l} was listening: {ex.Message}");
+                }
+            }));
             _log.Trace("Listeners have listened.");
 
             _log.Trace("Processing responders");
             Response response = null;
             foreach (var responder in _responders)
             {
-                response = await responder.Respond(message);
+                try
+                {
+                    response = await responder.Respond(message);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error(ex, $"An error occurred while trying to get a response from {responder}: {ex.Message}");
+                }
                 if (response != null)
                 {
                     _log.Trace("Got a response");
@@ -72,7 +86,14 @@ namespace Gambot.Bot
             _log.Trace("Processing transformers");
             foreach (var transformer in _transformers)
             {
-                response = await transformer.Transform(response);
+                try
+                {
+                    response = await transformer.Transform(response);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error(ex, $"An error ocurred while attempting to transform the response with {transformer}: {ex.Message}");
+                }
             }
             _log.Trace("Transformers have transformed");
 
