@@ -5,6 +5,7 @@ using Gambot.Core;
 using Gambot.Data.InMemory;
 using Gambot.IO;
 using Gambot.Module.BandName;
+using Gambot.Module.Config;
 using Gambot.Module.Factoid;
 using Gambot.Module.Say;
 
@@ -28,6 +29,8 @@ namespace Gambot.Bot
             var responders = new List<IResponder>
             {
                 new SayResponder(),
+                new SetConfigResponder(config),
+                new GetConfigResponder(config),
                 new AddFactoidResponder(dataStoreProvider),
                 new ForgetFactoidResponder(dataStoreProvider),
                 new LiteralFactoidResponder(dataStoreProvider),

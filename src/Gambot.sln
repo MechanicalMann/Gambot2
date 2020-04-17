@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.Factoid", "Ga
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.BandName", "Gambot.Module.BandName\Gambot.Module.BandName.csproj", "{80CE4B45-94E4-4DBF-A5F4-848435D1C399}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.Config", "Gambot.Module.Config\Gambot.Module.Config.csproj", "{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,5 +116,17 @@ Global
 		{80CE4B45-94E4-4DBF-A5F4-848435D1C399}.Release|x64.Build.0 = Release|Any CPU
 		{80CE4B45-94E4-4DBF-A5F4-848435D1C399}.Release|x86.ActiveCfg = Release|Any CPU
 		{80CE4B45-94E4-4DBF-A5F4-848435D1C399}.Release|x86.Build.0 = Release|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Debug|x64.Build.0 = Debug|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Debug|x86.Build.0 = Debug|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Release|x64.ActiveCfg = Release|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Release|x64.Build.0 = Release|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Release|x86.ActiveCfg = Release|Any CPU
+		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
