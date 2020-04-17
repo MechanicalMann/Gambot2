@@ -4,6 +4,7 @@ using System.Threading;
 using Gambot.Core;
 using Gambot.Data.InMemory;
 using Gambot.IO;
+using Gambot.Module.BandName;
 using Gambot.Module.Factoid;
 using Gambot.Module.Say;
 
@@ -31,6 +32,8 @@ namespace Gambot.Bot
                 new ForgetFactoidResponder(dataStoreProvider),
                 new LiteralFactoidResponder(dataStoreProvider),
                 new FactoidResponder(dataStoreProvider),
+                new AddBandNameResponder(dataStoreProvider, config),
+                new ExpandBandNameResponder(dataStoreProvider),
             };
             var transformers = new List<ITransformer>();
 
