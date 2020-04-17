@@ -14,5 +14,10 @@ namespace Gambot.Data
             Key = key;
             Value = value;
         }
+
+        public override string ToString()
+        {
+            return Value;
+        }
     }
 }

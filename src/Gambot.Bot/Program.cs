@@ -18,8 +18,12 @@ namespace Gambot.Bot
 
             // Temp implementation
             var dataStoreProvider = new InMemoryDataStoreProvider();
+            var config = new DataStoreConfig(dataStoreProvider, logger.GetChildLog("DataStoreLogger"));
 
-            var listeners = new List<IListener>();
+            var listeners = new List<IListener>
+            {
+                new FactoidListener(dataStoreProvider),
+            };
             var responders = new List<IResponder>
             {
                 new SayResponder(),
