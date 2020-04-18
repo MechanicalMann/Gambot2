@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -7,16 +7,16 @@ using Gambot.Data;
 
 namespace Gambot.Module.Variables
 {
-    public class ListVariableResponder : IResponder
+    public class ListVariableCommand : ICommand
     {
         private readonly IDataStoreProvider _dataStoreProvider;
 
-        public ListVariableResponder(IDataStoreProvider dataStoreProvider)
+        public ListVariableCommand(IDataStoreProvider dataStoreProvider)
         {
             _dataStoreProvider = dataStoreProvider;
         }
 
-        public async Task<Response> Respond(Message message)
+        public async Task<Response> Handle(Message message)
         {
             if (!message.Addressed)
                 return null;

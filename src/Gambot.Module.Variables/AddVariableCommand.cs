@@ -1,20 +1,20 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gambot.Core;
 using Gambot.Data;
 
 namespace Gambot.Module.Variables
 {
-    public class AddVariableResponder : IResponder
+    public class AddVariableCommand : ICommand
     {
         private readonly IDataStoreProvider _dataStoreProvider;
 
-        public AddVariableResponder(IDataStoreProvider dataStoreProvider)
+        public AddVariableCommand(IDataStoreProvider dataStoreProvider)
         {
             _dataStoreProvider = dataStoreProvider;
         }
 
-        public async Task<Response> Respond(Message message)
+        public async Task<Response> Handle(Message message)
         {
             if (!message.Addressed)
                 return null;

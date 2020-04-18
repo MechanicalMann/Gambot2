@@ -1,20 +1,20 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gambot.Core;
 using Gambot.Data;
 
 namespace Gambot.Module.Variables
 {
-    public class DeleteVariableResponder : IResponder
+    public class DeleteVariableCommand : ICommand
     {
         private readonly IDataStoreProvider _dataStoreProvider;
 
-        public DeleteVariableResponder(IDataStoreProvider dataStoreProvider)
+        public DeleteVariableCommand(IDataStoreProvider dataStoreProvider)
         {
             _dataStoreProvider = dataStoreProvider;
         }
 
-        public async Task<Response> Respond(Message message)
+        public async Task<Response> Handle(Message message)
         {
             if (!message.Addressed)
                 return null;

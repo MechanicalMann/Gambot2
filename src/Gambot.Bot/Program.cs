@@ -28,6 +28,19 @@ namespace Gambot.Bot
                 new BasicVariableHandler(dataStoreProvider),
             };
 
+            var commands = new List<ICommand>
+            {
+                new SetConfigCommand(config),
+                new GetConfigCommand(config),
+                new AddFactoidCommand(dataStoreProvider),
+                new ForgetFactoidCommand(dataStoreProvider),
+                new LiteralFactoidCommand(dataStoreProvider),
+                new AddVariableCommand(dataStoreProvider),
+                new RemoveVariableCommand(dataStoreProvider),
+                new DeleteVariableCommand(dataStoreProvider),
+                new ListVariableCommand(dataStoreProvider),
+            };
+
             var listeners = new List<IListener>
             {
                 new FactoidListener(dataStoreProvider),
@@ -35,18 +48,9 @@ namespace Gambot.Bot
             var responders = new List<IResponder>
             {
                 new SayResponder(),
-                new SetConfigCommand(config),
-                new GetConfigCommand(config),
-                new AddFactoidResponder(dataStoreProvider),
-                new ForgetFactoidResponder(dataStoreProvider),
-                new LiteralFactoidResponder(dataStoreProvider),
                 new FactoidResponder(dataStoreProvider),
                 new AddBandNameResponder(dataStoreProvider, config),
                 new ExpandBandNameResponder(dataStoreProvider),
-                new AddVariableResponder(dataStoreProvider),
-                new RemoveVariableResponder(dataStoreProvider),
-                new DeleteVariableResponder(dataStoreProvider),
-                new ListVariableResponder(dataStoreProvider),
             };
             var transformers = new List<ITransformer>
             {
@@ -55,7 +59,7 @@ namespace Gambot.Bot
 
             var messenger = new ConsoleMessenger(logger.GetChildLog("ConsoleMessenger"));
 
-            var processor = new BotProcess(listeners, responders, transformers, messenger, logger.GetChildLog("BotProcess"));
+            var processor = new BotProcess(commands, listeners, responders, transformers, messenger, logger.GetChildLog("BotProcess"));
 
             Console.CancelKeyPress += (sender, eventArgs) =>
             {

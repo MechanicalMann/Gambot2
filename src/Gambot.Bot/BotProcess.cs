@@ -11,6 +11,7 @@ namespace Gambot.Bot
 {
     public class BotProcess
     {
+        private readonly ICollection<ICommand> _commands;
         private readonly ICollection<IListener> _listeners;
         private readonly ICollection<IResponder> _responders;
         private readonly ICollection<ITransformer> _transformers;
@@ -19,8 +20,9 @@ namespace Gambot.Bot
 
         private readonly ILogger _log;
 
-        public BotProcess(ICollection<IListener> listeners, ICollection<IResponder> responders, ICollection<ITransformer> transformers, IMessenger messenger, ILogger log)
+        public BotProcess(ICollection<ICommand> commands, ICollection<IListener> listeners, ICollection<IResponder> responders, ICollection<ITransformer> transformers, IMessenger messenger, ILogger log)
         {
+            _commands = commands;
             _listeners = listeners;
             _responders = responders;
             _transformers = transformers;
@@ -45,6 +47,29 @@ namespace Gambot.Bot
         public async void HandleMessage(object sender, OnMessageReceivedEventArgs e)
         {
             var message = e.Message;
+            Response response = null;
+
+            _log.Trace("Handling commands");
+            foreach (var command in _commands)
+            {
+                try
+                {
+                    response = await command.Handle(message);
+                    if (response != null)
+                        break;
+                }
+                catch (Exception ex)
+                {
+                    _log.Error(ex, $"An error occurred while {command} was handling: {ex.Message}");
+                }
+            }
+            if (response != null)
+            {
+                _log.Trace("Handled command, responding immediately.");
+                await response.Send();
+                return;
+            }
+            _log.Trace("No commands to handle.");
 
             _log.Trace("Processing listeners");
             await Task.WhenAll(_listeners.Select(async l =>
@@ -58,7 +83,6 @@ namespace Gambot.Bot
             _log.Trace("Listeners have listened.");
 
             _log.Trace("Processing responders");
-            Response response = null;
             foreach (var responder in _responders)
             {
                 try
