@@ -8,6 +8,7 @@
     <ProjectReference Include="..\Gambot.Module.Factoid\Gambot.Module.Factoid.csproj" />
     <ProjectReference Include="..\Gambot.Module.BandName\Gambot.Module.BandName.csproj" />
     <ProjectReference Include="..\Gambot.Module.Config\Gambot.Module.Config.csproj" />
+    <ProjectReference Include="..\Gambot.Module.Variables\Gambot.Module.Variables.csproj" />
   </ItemGroup>
 
   <ItemGroup>
