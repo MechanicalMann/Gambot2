@@ -8,6 +8,7 @@ using Gambot.Module.BandName;
 using Gambot.Module.Config;
 using Gambot.Module.Factoid;
 using Gambot.Module.Say;
+using Gambot.Module.Variables;
 
 namespace Gambot.Bot
 {
@@ -22,6 +23,11 @@ namespace Gambot.Bot
             var dataStoreProvider = new InMemoryDataStoreProvider();
             var config = new DataStoreConfig(dataStoreProvider, logger.GetChildLog("DataStoreLogger"));
 
+            var variableHandlers = new List<IVariableHandler>
+            {
+                new BasicVariableHandler(dataStoreProvider),
+            };
+
             var listeners = new List<IListener>
             {
                 new FactoidListener(dataStoreProvider),
@@ -29,16 +35,23 @@ namespace Gambot.Bot
             var responders = new List<IResponder>
             {
                 new SayResponder(),
-                new SetConfigResponder(config),
-                new GetConfigResponder(config),
+                new SetConfigCommand(config),
+                new GetConfigCommand(config),
                 new AddFactoidResponder(dataStoreProvider),
                 new ForgetFactoidResponder(dataStoreProvider),
                 new LiteralFactoidResponder(dataStoreProvider),
                 new FactoidResponder(dataStoreProvider),
                 new AddBandNameResponder(dataStoreProvider, config),
                 new ExpandBandNameResponder(dataStoreProvider),
+                new AddVariableResponder(dataStoreProvider),
+                new RemoveVariableResponder(dataStoreProvider),
+                new DeleteVariableResponder(dataStoreProvider),
+                new ListVariableResponder(dataStoreProvider),
             };
-            var transformers = new List<ITransformer>();
+            var transformers = new List<ITransformer>
+            {
+                new VariableTransformer(variableHandlers),
+            };
 
             var messenger = new ConsoleMessenger(logger.GetChildLog("ConsoleMessenger"));
 

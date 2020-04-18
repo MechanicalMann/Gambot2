@@ -16,18 +16,22 @@ namespace Gambot.Module.Variables
         private readonly char[] _vowels = new [] { 'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U' };
 
         private readonly ICollection<IVariableHandler> _variableHandlers;
-        private readonly IDataStoreProvider _dataStoreProvider;
 
-        public VariableTransformer(ICollection<IVariableHandler> variableHandlers, IDataStoreProvider dataStoreProvider)
+        public VariableTransformer(ICollection<IVariableHandler> variableHandlers)
         {
             _variableHandlers = variableHandlers;
-            _dataStoreProvider = dataStoreProvider;
         }
 
         public async Task<Response> Transform(Response response)
         {
+            // Shitty recursion for nested variable references
             while (response.Text.Contains("$"))
-                response.Text = await Substitute(response.Text, response.Message);
+            {
+                string substitution = await Substitute(response.Text, response.Message);
+                if (substitution == response.Text)
+                    break; // We've run out of variables to replace
+                response.Text = substitution;
+            }
             return response;
         }
 
@@ -87,10 +91,10 @@ namespace Gambot.Module.Variables
             var an = match.Groups[1].Value;
             var leadingSpace = an.StartsWith(" ");
             var startsWithVowel = _vowels.Contains(substitution[0]);
-            substitution = (leadingSpace ? " " : "") +
-                MatchCase(an.Trim(), startsWithVowel ? "an" : "a") +
-                " " +
-                substitution;
+            substitution = (leadingSpace ? " " : "")
+                + MatchCase(an.Trim(), startsWithVowel ? "an" : "a")
+                + " "
+                + substitution;
             return substitution;
         }
 
@@ -102,8 +106,8 @@ namespace Gambot.Module.Variables
                 return String.Join(" ",
                     destination.Split(' ').Where(word => !String.IsNullOrWhiteSpace(word))
                     .Select(word =>
-                        Char.ToUpper(word[0]).ToString() +
-                        word.Substring(1)));
+                        Char.ToUpper(word[0]).ToString()
+                        + word.Substring(1)));
             return destination;
         }
     }
