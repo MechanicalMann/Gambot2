@@ -1,6 +1,9 @@
-﻿using System;
+﻿using System.Reflection;
+using System.IO;
+using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
 using Gambot.Core;
 using Gambot.Data.InMemory;
 using Gambot.IO;
@@ -9,6 +12,9 @@ using Gambot.Module.Config;
 using Gambot.Module.Factoid;
 using Gambot.Module.Say;
 using Gambot.Module.Variables;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 
 namespace Gambot.Bot
 {
@@ -16,7 +22,14 @@ namespace Gambot.Bot
     {
         static void Main(string[] args)
         {
-            var logger = new ConsoleLogger("Gambot");
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", false)
+                .AddJsonFile("appsettings.local.json", true)
+                .Build();
+            ConfigureLogging(configuration);
+
+            var logger = new NLogLogger("Gambot");
             logger.Info("Starting the screaming robot.");
 
             // Temp implementation
@@ -24,38 +37,38 @@ namespace Gambot.Bot
             var config = new DataStoreConfig(dataStoreProvider, logger.GetChildLog("DataStoreLogger"));
 
             var variableHandlers = new List<IVariableHandler>
-            {
-                new BasicVariableHandler(dataStoreProvider),
-            };
+                {
+                    new BasicVariableHandler(dataStoreProvider),
+                };
 
             var commands = new List<ICommand>
-            {
-                new SetConfigCommand(config),
-                new GetConfigCommand(config),
-                new AddFactoidCommand(dataStoreProvider),
-                new ForgetFactoidCommand(dataStoreProvider),
-                new LiteralFactoidCommand(dataStoreProvider),
-                new AddVariableCommand(dataStoreProvider),
-                new RemoveVariableCommand(dataStoreProvider),
-                new DeleteVariableCommand(dataStoreProvider),
-                new ListVariableCommand(dataStoreProvider),
-            };
+                {
+                    new SetConfigCommand(config),
+                    new GetConfigCommand(config),
+                    new AddFactoidCommand(dataStoreProvider),
+                    new ForgetFactoidCommand(dataStoreProvider),
+                    new LiteralFactoidCommand(dataStoreProvider),
+                    new AddVariableCommand(dataStoreProvider),
+                    new RemoveVariableCommand(dataStoreProvider),
+                    new DeleteVariableCommand(dataStoreProvider),
+                    new ListVariableCommand(dataStoreProvider),
+                };
 
             var listeners = new List<IListener>
-            {
-                new FactoidListener(dataStoreProvider),
-            };
+                {
+                    new FactoidListener(dataStoreProvider),
+                };
             var responders = new List<IResponder>
-            {
-                new SayResponder(),
-                new FactoidResponder(dataStoreProvider),
-                new AddBandNameResponder(dataStoreProvider, config),
-                new ExpandBandNameResponder(dataStoreProvider),
-            };
+                {
+                    new SayResponder(),
+                    new FactoidResponder(dataStoreProvider),
+                    new AddBandNameResponder(dataStoreProvider, config),
+                    new ExpandBandNameResponder(dataStoreProvider),
+                };
             var transformers = new List<ITransformer>
-            {
-                new VariableTransformer(variableHandlers),
-            };
+                {
+                    new VariableTransformer(variableHandlers),
+                };
 
             var messenger = new ConsoleMessenger(logger.GetChildLog("ConsoleMessenger"));
 
@@ -74,91 +87,40 @@ namespace Gambot.Bot
 
             Thread.Sleep(Timeout.Infinite);
         }
-    }
 
-    public class ConsoleLogger : ILogger
-    {
-        private readonly string _name;
-
-        public ConsoleLogger(string name)
+        private static void ConfigureLogging(IConfiguration configuration)
         {
-            _name = name;
-        }
+            const string defaultMessageLayout = "${longdate} [${pad:padding=5:inner=${level:uppercase=true}}] ${processid}:${threadid} ${logger} - ${message} ${exception:format=tostring}";
+            var layout = configuration["Logging:Layout"] ?? defaultMessageLayout;
+            var level = LogLevel.FromString(configuration["Logging:DefaultLevel"] ?? "Info");
 
-        public void Debug(string message, params object[] formatArgs)
-        {
-            WriteLog("DEBUG", message, formatArgs);
-        }
+            var logConfig = new LoggingConfiguration();
 
-        public void Debug(Exception ex, string message, params object[] formatArgs)
-        {
-            WriteLog("DEBUG", message, formatArgs);
-            Console.WriteLine(ex.ToString());
-        }
+            if (!Environment.UserInteractive)
+            {
+                var fileTarget = new FileTarget
+                {
+                    FileName = configuration["Logging:LogFile"] ?? "gambot.log",
+                    Layout = layout
+                };
+                logConfig.AddTarget("file", fileTarget);
 
-        public void Error(string message, params object[] formatArgs)
-        {
-            WriteLog("ERROR", message, formatArgs);
-        }
+                var fileRule = new LoggingRule("*", level, fileTarget);
+                logConfig.LoggingRules.Add(fileRule);
+            }
+            else
+            {
+                var consoleTarget = new ColoredConsoleTarget
+                {
+                    Layout = layout
+                };
+                logConfig.AddTarget("console", consoleTarget);
 
-        public void Error(Exception ex, string message, params object[] formatArgs)
-        {
-            WriteLog("ERROR", message, formatArgs);
-            Console.WriteLine(ex.ToString());
-        }
+                var consoleRule = new LoggingRule("*", LogLevel.Debug, consoleTarget);
+                logConfig.LoggingRules.Add(consoleRule);
+            }
 
-        public void Fatal(string message, params object[] formatArgs)
-        {
-            WriteLog("FATAL", message, formatArgs);
-        }
-
-        public void Fatal(Exception ex, string message, params object[] formatArgs)
-        {
-            WriteLog("FATAL", message, formatArgs);
-            Console.WriteLine(ex.ToString());
-        }
-
-        public void Info(string message, params object[] formatArgs)
-        {
-            WriteLog("INFO", message, formatArgs);
-        }
-
-        public void Info(Exception ex, string message, params object[] formatArgs)
-        {
-            WriteLog("INFO", message, formatArgs);
-            Console.WriteLine(ex.ToString());
-        }
-
-        public void Trace(string message, params object[] formatArgs)
-        {
-            // WriteLog("TRACE", message, formatArgs);
-        }
-
-        public void Trace(Exception ex, string message, params object[] formatArgs)
-        {
-            // WriteLog("TRACE", message, formatArgs);
-            Console.WriteLine(ex.ToString());
-        }
-
-        public void Warn(string message, params object[] formatArgs)
-        {
-            WriteLog("WARN ", message, formatArgs);
-        }
-
-        public void Warn(Exception ex, string message, params object[] formatArgs)
-        {
-            WriteLog("WARN ", message, formatArgs);
-            Console.WriteLine(ex.ToString());
-        }
-
-        private void WriteLog(string level, string message, params object[] formatArgs)
-        {
-            Console.WriteLine($"{DateTime.Now.ToString("u")} {level} [{_name}] {message}", formatArgs);
-        }
-
-        public ILogger GetChildLog(string name)
-        {
-            return new ConsoleLogger($"{_name}.{name}");
+            LogManager.Configuration = logConfig;
         }
     }
 }
