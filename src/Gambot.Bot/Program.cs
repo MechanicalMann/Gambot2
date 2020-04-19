@@ -1,10 +1,12 @@
-﻿using System.Reflection;
-using System.IO;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Gambot.Core;
+using Gambot.Data;
 using Gambot.Data.InMemory;
 using Gambot.IO;
 using Gambot.Module.BandName;
@@ -15,12 +17,15 @@ using Gambot.Module.Variables;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using SimpleInjector;
 
 namespace Gambot.Bot
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main(string[] args) => MainAsync().GetAwaiter().GetResult();
+
+        static async Task MainAsync()
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -29,63 +34,84 @@ namespace Gambot.Bot
                 .Build();
             ConfigureLogging(configuration);
 
-            var logger = new NLogLogger("Gambot");
+            var logger = new NLogLogger("Gambot.Bot");
             logger.Info("Starting the screaming robot.");
 
-            // Temp implementation
-            var dataStoreProvider = new InMemoryDataStoreProvider();
-            var config = new DataStoreConfig(dataStoreProvider, logger.GetChildLog("DataStoreLogger"));
+            logger.Trace("Configuring dependency injection container.");
+            var container = new Container();
 
-            var variableHandlers = new List<IVariableHandler>
-                {
-                    new BasicVariableHandler(dataStoreProvider),
-                };
+            // Configure logging proxy
+            logger.Trace("Registering log proxy");
+            container.RegisterConditional(typeof(Gambot.Core.ILogger), ctx => typeof(NLogLogger<>).MakeGenericType(ctx.Consumer.ImplementationType), Lifestyle.Singleton, ctx => true);
 
-            var commands = new List<ICommand>
-                {
-                    new SetConfigCommand(config),
-                    new GetConfigCommand(config),
-                    new AddFactoidCommand(dataStoreProvider),
-                    new ForgetFactoidCommand(dataStoreProvider),
-                    new LiteralFactoidCommand(dataStoreProvider),
-                    new AddVariableCommand(dataStoreProvider),
-                    new RemoveVariableCommand(dataStoreProvider),
-                    new DeleteVariableCommand(dataStoreProvider),
-                    new ListVariableCommand(dataStoreProvider),
-                };
+            logger.Trace("Registering config provider");
+            container.Register<IConfig, DataStoreConfig>(Lifestyle.Singleton);
 
-            var listeners = new List<IListener>
-                {
-                    new FactoidListener(dataStoreProvider),
-                };
-            var responders = new List<IResponder>
-                {
-                    new SayResponder(),
-                    new FactoidResponder(dataStoreProvider),
-                    new AddBandNameResponder(dataStoreProvider, config),
-                    new ExpandBandNameResponder(dataStoreProvider),
-                };
-            var transformers = new List<ITransformer>
-                {
-                    new VariableTransformer(variableHandlers),
-                };
+            logger.Trace("Registering the data store");
+            container.Register<IDataStoreProvider, InMemoryDataStoreProvider>(Lifestyle.Singleton);
 
-            var messenger = new ConsoleMessenger(logger.GetChildLog("ConsoleMessenger"));
+            // Get all the included module assemblies
+            logger.Debug("Loading module assemblies...");
+            var assemblies = GetAssemblies();
+            logger.Trace("Module assemblies loaded.");
 
-            var processor = new BotProcess(commands, listeners, responders, transformers, messenger, logger.GetChildLog("BotProcess"));
+            logger.Trace("Registering module components");
+            logger.Trace("Registering commands...");
+            container.Collection.Register<ICommand>(assemblies);
 
-            Console.CancelKeyPress += (sender, eventArgs) =>
+            logger.Trace("Registering variable handlers...");
+            container.Collection.Register<IVariableHandler>(assemblies);
+
+            logger.Trace("Registering listeners...");
+            container.Collection.Register<IListener>(assemblies);
+
+            logger.Trace("Registering responders...");
+            container.Collection.Register<IResponder>(assemblies);
+
+            logger.Trace("Registering transformers...");
+            container.Collection.Register<ITransformer>(assemblies);
+
+            logger.Info("Module components loaded.");
+
+            logger.Trace("Registering IO");
+            container.Register<IMessenger, ConsoleMessenger>(Lifestyle.Singleton);
+
+            logger.Trace("Registering Bot processor");
+            container.Register<BotProcess>(Lifestyle.Singleton);
+
+            logger.Debug("Validating container configuration...");
+            container.Verify();
+            logger.Info("Bot successfully configured.");
+
+            logger.Info("Starting bot process.");
+            var processor = container.GetInstance<BotProcess>();
+
+            Console.CancelKeyPress += async(sender, eventArgs) =>
             {
                 logger.Info("Shutting down...");
-                if (messenger != null)
-                    messenger.Dispose();
+                await processor.Stop();
                 logger.Info("Done.");
                 Environment.Exit(0);
             };
 
-            processor.Initialize();
+            await processor.Initialize();
 
-            Thread.Sleep(Timeout.Infinite);
+            await Task.Delay(-1);
+        }
+
+        private static IEnumerable<Assembly> GetAssemblies()
+        {
+            // Still a temp implementation...
+            return new []
+            {
+                typeof(IDataStore).Assembly,
+                typeof(ConsoleMessenger).Assembly,
+                typeof(ConfigModule).Assembly,
+                typeof(VariableModule).Assembly,
+                typeof(SayModule).Assembly,
+                typeof(FactoidModule).Assembly,
+                typeof(BandNameModule).Assembly,
+            };
         }
 
         private static void ConfigureLogging(IConfiguration configuration)

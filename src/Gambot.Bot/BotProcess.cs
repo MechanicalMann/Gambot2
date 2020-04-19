@@ -124,5 +124,14 @@ namespace Gambot.Bot
             _log.Trace("Sending response");
             await response.Send();
         }
+
+        public async Task Stop()
+        {
+            if (_messenger != null)
+            {
+                await _messenger.Disconnect();
+                _messenger.Dispose();
+            }
+        }
     }
 }

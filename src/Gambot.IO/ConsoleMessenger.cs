@@ -8,6 +8,7 @@ namespace Gambot.IO
     public class ConsoleMessenger : IMessenger
     {
         private readonly ILogger _log;
+        private bool _connected = false;
         private Thread _inputThread = null;
 
         public event EventHandler<OnMessageReceivedEventArgs> OnMessageReceived = delegate {};
@@ -29,11 +30,11 @@ namespace Gambot.IO
             _inputThread = new Thread(() =>
             {
                 _log.Trace("Spinning up console listener thread.");
-                while (true)
+                while (_connected)
                 {
                     Console.Write("> ");
                     var message = Console.ReadLine();
-                    if (!String.IsNullOrEmpty(message) && OnMessageReceived != null)
+                    if (_connected && !String.IsNullOrEmpty(message) && OnMessageReceived != null)
                     {
                         _log.Trace("Received message");
                         var addressed = message.StartsWith("gambot, ", StringComparison.OrdinalIgnoreCase);
@@ -45,6 +46,7 @@ namespace Gambot.IO
                     }
                 }
             });
+            _connected = true;
             _inputThread.Start();
             return Task.FromResult(true);
         }
@@ -53,7 +55,16 @@ namespace Gambot.IO
         {
             _log.Trace("Disposing");
             if (_inputThread != null)
+            {
+                _connected = false;
                 _inputThread.Interrupt();
+            }
+        }
+
+        public Task Disconnect()
+        {
+            _log.Debug("Disconnecting");
+            return Task.CompletedTask;
         }
     }
 }

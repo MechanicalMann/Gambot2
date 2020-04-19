@@ -7,6 +7,7 @@ namespace Gambot.Core
     {
         event EventHandler<OnMessageReceivedEventArgs> OnMessageReceived;
         Task<bool> Connect();
+        Task Disconnect();
         Task SendMessage(string channel, string message, bool action);
     }
 

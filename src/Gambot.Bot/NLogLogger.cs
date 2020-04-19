@@ -80,4 +80,11 @@ namespace Gambot.Bot
             return new NLogLogger($"{Name}.{name}");
         }
     }
+
+    public class NLogLogger<T> : NLogLogger
+    {
+        public NLogLogger() : base(typeof(T).FullName)
+        {
+        }
+    }
 }
