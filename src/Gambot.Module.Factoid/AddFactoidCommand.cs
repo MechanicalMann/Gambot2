@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gambot.Core;
 using Gambot.Data;
@@ -24,9 +25,12 @@ namespace Gambot.Module.Factoid
                 return null;
             var dataStore = await _dataStoreProvider.GetDataStore("Factoids");
 
-            var trigger = match.Groups[1].Value;
-            var verb = match.Groups[2].Value;
+            var trigger = match.Groups[1].Value.ToLowerInvariant();
+            var verb = match.Groups[2].Value.ToLowerInvariant();
             var response = match.Groups[3].Value;
+
+            if (verb == "alias" && String.Compare(trigger, response, true) == 0)
+                return message.Respond($"Sorry, {message.From}, but you can't alias {trigger} to itself.");
 
             var added = await dataStore.Add(trigger, $"{verb} {response}");
 
