@@ -46,7 +46,7 @@ namespace Gambot.Module.Factoid
                 }
 
                 await historyStore.RemoveAll(message.Channel);
-                await historyStore.Add(message.Channel, factoid.ToString());
+                await historyStore.Add(message.Channel, $"(#{reply.Id}) \"{factoid.ToString()}\"");
 
                 if (factoid.Verb == "reply")
                     return message.Respond(factoid.Response);

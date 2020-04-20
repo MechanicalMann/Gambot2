@@ -23,14 +23,14 @@ namespace Gambot.Module.Factoid
             var match = Regex.Match(message.Text, @"^what was that\??$", RegexOptions.IgnoreCase);
             if (!match.Success)
                 return null;
-            
+
             var dataStore = await _dataStoreProvider.GetDataStore("FactoidHistory");
             var lastFactoid = (await dataStore.GetAll(message.Channel)).FirstOrDefault();
 
             if (lastFactoid == null)
                 return message.Respond("¯\\_(ツ)_/¯");
-            
-            return message.Respond($"{message.From}, that was (#{lastFactoid.Id}) \"{lastFactoid.ToString()}\"");
+
+            return message.Respond($"{message.From}, that was {lastFactoid.Value}");
         }
     }
 }
