@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.BandName", "G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.Config", "Gambot.Module.Config\Gambot.Module.Config.csproj", "{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Data.SQLite", "Gambot.Data.SQLite\Gambot.Data.SQLite.csproj", "{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -128,5 +130,17 @@ Global
 		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Release|x64.Build.0 = Release|Any CPU
 		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Release|x86.ActiveCfg = Release|Any CPU
 		{5C5AD7F2-2F69-4BFD-A899-C070B1BDF0A3}.Release|x86.Build.0 = Release|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Debug|x64.Build.0 = Debug|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Debug|x86.Build.0 = Debug|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Release|x64.ActiveCfg = Release|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Release|x64.Build.0 = Release|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Release|x86.ActiveCfg = Release|Any CPU
+		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -4,9 +4,11 @@ namespace Gambot.Data
 {
     public class DataStoreValue
     {
-        public int Id { get; protected set; }
-        public string Key { get; protected set; }
-        public string Value { get; protected set; }
+        public int Id { get; set; }
+        public string Key { get; set; }
+        public string Value { get; set; }
+
+        public DataStoreValue() {}
 
         public DataStoreValue(int id, string key, string value)
         {

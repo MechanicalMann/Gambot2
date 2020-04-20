@@ -18,6 +18,7 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using SimpleInjector;
+using Gambot.Data.SQLite;
 
 namespace Gambot.Bot
 {
@@ -44,11 +45,16 @@ namespace Gambot.Bot
             logger.Trace("Registering log proxy");
             container.RegisterConditional(typeof(Gambot.Core.ILogger), ctx => typeof(NLogLogger<>).MakeGenericType(ctx.Consumer.ImplementationType), Lifestyle.Singleton, ctx => true);
 
+            logger.Trace("Registering the data store provider");
+            var dataStore = configuration["Gambot:DataStoreProvider"] ?? "InMemory";
+
+            if (String.Compare("inmemory", dataStore, true) == 0)
+                container.Register<IDataStoreProvider, InMemoryDataStoreProvider>(Lifestyle.Singleton);
+            if (String.Compare("sqlite", dataStore, true) == 0)
+                container.Register<IDataStoreProvider>(() => new SQLiteDataStoreProvider(configuration["ConnectionStrings:Gambot"]), Lifestyle.Singleton);
+
             logger.Trace("Registering config provider");
             container.Register<IConfig, DataStoreConfig>(Lifestyle.Singleton);
-
-            logger.Trace("Registering the data store");
-            container.Register<IDataStoreProvider, InMemoryDataStoreProvider>(Lifestyle.Singleton);
 
             // Get all the included module assemblies
             logger.Debug("Loading module assemblies...");

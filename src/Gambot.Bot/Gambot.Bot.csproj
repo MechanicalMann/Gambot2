@@ -3,6 +3,7 @@
     <ProjectReference Include="..\Gambot.Core\Gambot.Core.csproj"/>
     <ProjectReference Include="..\Gambot.IO\Gambot.IO.csproj"/>
     <ProjectReference Include="..\Gambot.Data\Gambot.Data.csproj"/>
+    <ProjectReference Include="..\Gambot.Data.SQLite\Gambot.Data.SQLite.csproj"/>
     <ProjectReference Include="..\Gambot.Module.Say\Gambot.Module.Say.csproj"/>
     <ProjectReference Include="..\Gambot.Module.Factoid\Gambot.Module.Factoid.csproj"/>
     <ProjectReference Include="..\Gambot.Module.BandName\Gambot.Module.BandName.csproj"/>
