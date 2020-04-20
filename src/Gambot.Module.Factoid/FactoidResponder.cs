@@ -26,6 +26,7 @@ namespace Gambot.Module.Factoid
             var trigger = message.Text;
 
             var dataStore = await _dataStoreProvider.GetDataStore("Factoids");
+            var historyStore = await _dataStoreProvider.GetDataStore("FactoidHistory");
             var aliases = new HashSet<string>();
 
             while (true)
@@ -44,11 +45,14 @@ namespace Gambot.Module.Factoid
                     continue;
                 }
 
+                await historyStore.RemoveAll(message.Channel);
+                await historyStore.Add(message.Channel, factoid.ToString());
 
                 if (factoid.Verb == "reply")
                     return message.Respond(factoid.Response);
                 if (factoid.Verb == "action")
                     return message.Respond(factoid.Response, true);
+
                 return message.Respond($"{trigger} {factoid.Verb} {factoid.Response}");
             }
         }
