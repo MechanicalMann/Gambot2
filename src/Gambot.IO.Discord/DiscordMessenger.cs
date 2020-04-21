@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -58,6 +59,19 @@ namespace Gambot.IO.Discord
             await target.SendMessageAsync(message);
         }
 
+        public async Task<IEnumerable<Message>> GetMessageHistory(string channel, string user = null)
+        {
+            var target = _client.GetChannel(UInt64.Parse(channel)) as ISocketMessageChannel;
+            if (target == null)
+                return Enumerable.Empty<Message>();
+            var history = (await target.GetMessagesAsync(100).FlattenAsync());
+            if (user != null)
+            {
+                history = history.Where(m => m.Author.Mention == user || m.Author.Username == user || (m.Author as SocketGuildUser)?.Nickname == user);
+            }
+            return history.Reverse().Select(m => GetGambotMessage(m));
+        }
+
         private Task ReceiveMessage(SocketMessage message)
         {
             if (OnMessageReceived == null)
@@ -65,6 +79,20 @@ namespace Gambot.IO.Discord
             if (message.Author.Id == _client.CurrentUser.Id)
                 return Task.CompletedTask;
 
+            var gm = GetGambotMessage(message);
+            var typing = gm.Addressed ? message.Channel.EnterTypingState() : null;
+            var eventArgs = new OnMessageReceivedEventArgs
+            {
+                Message = gm,
+            };
+            OnMessageReceived.Invoke(this, eventArgs);
+            typing?.Dispose();
+            return Task.CompletedTask;
+        }
+
+        private Message GetGambotMessage(IMessage message)
+        {
+            var socketMessage = message as SocketMessage;
             var addressed = false;
             var text = message.Content;
 
@@ -73,14 +101,14 @@ namespace Gambot.IO.Discord
                 addressed = true;
                 text = text.Substring(8);
             }
-            if (message.MentionedUsers.Any(x => x.Id == _client.CurrentUser.Id))
+            if (socketMessage?.MentionedUsers.Any(x => x.Id == _client.CurrentUser.Id) ?? false)
             {
                 addressed = true;
                 text = text.Replace(_client.CurrentUser.Mention, "").Trim();
             }
 
             string to = null;
-            var tagged = message.MentionedUsers.FirstOrDefault(u => u.Id != _client.CurrentUser.Id);
+            var tagged = socketMessage?.MentionedUsers.FirstOrDefault(u => u.Id != _client.CurrentUser.Id);
             if (tagged != null)
             {
                 to = tagged.Mention;
@@ -95,12 +123,7 @@ namespace Gambot.IO.Discord
                 }
             }
 
-            var eventArgs = new OnMessageReceivedEventArgs
-            {
-                Message = new Message(addressed, false, false, text, message.Channel.Id.ToString(), message.Author.Mention, to, this)
-            };
-            OnMessageReceived.Invoke(this, eventArgs);
-            return Task.CompletedTask;
+            return new Message(addressed, false, false, text, message.Channel.Id.ToString(), message.Author.Mention, to, this);
         }
 
         private Task Log(LogMessage logMessage)

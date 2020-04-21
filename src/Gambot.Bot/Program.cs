@@ -81,12 +81,20 @@ namespace Gambot.Bot
             logger.Info("Module components loaded.");
 
             logger.Trace("Registering IO");
-            container.RegisterSingleton(() => new DiscordConfiguration
+            var io = configuration["Gambot:IO"] ?? "console";
+            if (String.Compare(io, "discord", true) == 0)
             {
-                Token = configuration["Discord:Token"],
-                LogSeverity = 5 - LogManager.GlobalThreshold.Ordinal
-            });
-            container.Register<IMessenger, DiscordMessenger>(Lifestyle.Singleton);
+                container.RegisterSingleton(() => new DiscordConfiguration
+                {
+                    Token = configuration["Discord:Token"],
+                    LogSeverity = 5 - LogManager.GlobalThreshold.Ordinal
+                });
+                container.Register<IMessenger, DiscordMessenger>(Lifestyle.Singleton);
+            }
+            else
+            {
+                container.Register<IMessenger, ConsoleMessenger>(Lifestyle.Singleton);
+            }
 
             logger.Trace("Registering Bot processor");
             container.Register<BotProcess>(Lifestyle.Singleton);

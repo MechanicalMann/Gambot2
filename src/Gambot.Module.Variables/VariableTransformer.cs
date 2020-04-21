@@ -54,25 +54,26 @@ namespace Gambot.Module.Variables
 
         private async Task<string> Substitute(Match match, Message context, Dictionary<string, string> replacements)
         {
-            var variable = match.Groups[2].Value.ToLowerInvariant();
+            var variable = match.Groups[2].Value;
+            var key = variable.ToLowerInvariant();
             var substitution = match.Value;
 
             var replaced = false;
 
-            if (replacements.ContainsKey(variable))
+            if (replacements.ContainsKey(key))
             {
-                substitution = replacements[variable];
+                substitution = replacements[key];
                 replaced = true;
             }
             else
             {
                 foreach (var handler in _variableHandlers)
                 {
-                    var value = await handler.GetValue(variable, context);
+                    var value = await handler.GetValue(key, context);
                     if (value != null)
                     {
                         substitution = value;
-                        replacements[variable] = substitution;
+                        replacements[key] = substitution;
                         replaced = true;
                         break;
                     }
