@@ -9,7 +9,7 @@ using Gambot.Core;
 
 namespace Gambot.IO.Discord
 {
-    public class DiscordMessenger : IMessenger
+    public class DiscordMessenger : IMessenger, IPersonProvider
     {
         private readonly ILogger _log;
         private readonly LogSeverity _logSeverity;
@@ -72,6 +72,15 @@ namespace Gambot.IO.Discord
             return history.Reverse().Select(m => GetGambotMessage(m));
         }
 
+        public async Task<IEnumerable<Person>> GetActiveUsers(string channel)
+        {
+            var target = _client.GetChannel(UInt64.Parse(channel)) as ISocketMessageChannel;
+            if (target == null)
+                return Enumerable.Empty<Person>();
+            var users = await target.GetUsersAsync().FlattenAsync();
+            return users.Select(x => GetGambotPerson(x)).Where(x => x.IsActive);
+        }
+
         private Task ReceiveMessage(SocketMessage message)
         {
             if (OnMessageReceived == null)
@@ -124,6 +133,19 @@ namespace Gambot.IO.Discord
             }
 
             return new Message(addressed, false, false, text, message.Channel.Id.ToString(), message.Author.Mention, to, this);
+        }
+
+        private Person GetGambotPerson(IUser user)
+        {
+            var person = new Person();
+            person.Name = user.Mention;
+            person.IsActive = user.Status == UserStatus.Online || user.Status == UserStatus.Idle;
+            var su = user as SocketGuildUser;
+            if (su != null)
+            {
+                person.IsAdmin = su.Roles.Any(x => x.Permissions.Administrator || x.Permissions.ManageGuild);
+            }
+            return person;
         }
 
         private Task Log(LogMessage logMessage)

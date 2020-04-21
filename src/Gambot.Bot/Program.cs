@@ -87,13 +87,15 @@ namespace Gambot.Bot
                 container.RegisterSingleton(() => new DiscordConfiguration
                 {
                     Token = configuration["Discord:Token"],
-                    LogSeverity = 5 - LogManager.GlobalThreshold.Ordinal
+                        LogSeverity = 5 - LogManager.GlobalThreshold.Ordinal
                 });
                 container.Register<IMessenger, DiscordMessenger>(Lifestyle.Singleton);
+                container.Register<IPersonProvider, DiscordMessenger>(Lifestyle.Singleton);
             }
             else
             {
                 container.Register<IMessenger, ConsoleMessenger>(Lifestyle.Singleton);
+                container.Register<IPersonProvider, ConsoleMessenger>(Lifestyle.Singleton);
             }
 
             logger.Trace("Registering Bot processor");

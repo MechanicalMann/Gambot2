@@ -1,14 +1,14 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Gambot.Core;
-using System.Collections.Generic;
 
 namespace Gambot.IO
 {
-    public class ConsoleMessenger : IMessenger
+    public class ConsoleMessenger : IMessenger, IPersonProvider
     {
         private readonly ILogger _log;
         private readonly Queue<Message> _history = new Queue<Message>();
@@ -86,6 +86,11 @@ namespace Gambot.IO
         {
             _log.Debug("Disconnecting");
             return Task.CompletedTask;
+        }
+
+        public Task<IEnumerable<Person>> GetActiveUsers(string channel)
+        {
+            return Task.FromResult<IEnumerable<Person>>(new [] { new Person { Name = "Human", IsActive = true, IsAdmin = true } });
         }
     }
 }
