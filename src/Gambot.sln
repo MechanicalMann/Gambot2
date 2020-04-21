@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.Config", "Gam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Data.SQLite", "Gambot.Data.SQLite\Gambot.Data.SQLite.csproj", "{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.IO.Discord", "Gambot.IO.Discord\Gambot.IO.Discord.csproj", "{2C1D737C-C20F-450E-90BE-0F79382F74C4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,5 +144,17 @@ Global
 		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Release|x64.Build.0 = Release|Any CPU
 		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Release|x86.ActiveCfg = Release|Any CPU
 		{0D172CF5-7A40-464F-8DE4-CAF51C032E5B}.Release|x86.Build.0 = Release|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Debug|x64.Build.0 = Debug|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Debug|x86.Build.0 = Debug|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Release|x64.ActiveCfg = Release|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Release|x64.Build.0 = Release|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Release|x86.ActiveCfg = Release|Any CPU
+		{2C1D737C-C20F-450E-90BE-0F79382F74C4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

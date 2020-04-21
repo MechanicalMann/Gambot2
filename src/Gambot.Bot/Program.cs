@@ -8,7 +8,9 @@ using Microsoft.Extensions.Configuration;
 using Gambot.Core;
 using Gambot.Data;
 using Gambot.Data.InMemory;
+using Gambot.Data.SQLite;
 using Gambot.IO;
+using Gambot.IO.Discord;
 using Gambot.Module.BandName;
 using Gambot.Module.Config;
 using Gambot.Module.Factoid;
@@ -18,7 +20,6 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using SimpleInjector;
-using Gambot.Data.SQLite;
 
 namespace Gambot.Bot
 {
@@ -80,7 +81,12 @@ namespace Gambot.Bot
             logger.Info("Module components loaded.");
 
             logger.Trace("Registering IO");
-            container.Register<IMessenger, ConsoleMessenger>(Lifestyle.Singleton);
+            container.RegisterSingleton(() => new DiscordConfiguration
+            {
+                Token = configuration["Discord:Token"],
+                LogSeverity = 5 - LogManager.GlobalThreshold.Ordinal
+            });
+            container.Register<IMessenger, DiscordMessenger>(Lifestyle.Singleton);
 
             logger.Trace("Registering Bot processor");
             container.Register<BotProcess>(Lifestyle.Singleton);
@@ -148,10 +154,11 @@ namespace Gambot.Bot
                 };
                 logConfig.AddTarget("console", consoleTarget);
 
-                var consoleRule = new LoggingRule("*", LogLevel.Debug, consoleTarget);
+                var consoleRule = new LoggingRule("*", level, consoleTarget);
                 logConfig.LoggingRules.Add(consoleRule);
             }
 
+            LogManager.GlobalThreshold = level;
             LogManager.Configuration = logConfig;
         }
     }

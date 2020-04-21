@@ -122,7 +122,14 @@ namespace Gambot.Bot
             _log.Trace("Transformers have transformed");
 
             _log.Trace("Sending response");
-            await response.Send();
+            try
+            {
+                await response.Send();
+            }
+            catch (Exception ex)
+            {
+                _log.Error(ex, $"An error occurred while attempting to send the response: {ex.Message}");
+            }
         }
 
         public async Task Stop()
