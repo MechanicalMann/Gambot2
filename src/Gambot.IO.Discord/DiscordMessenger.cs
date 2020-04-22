@@ -105,18 +105,20 @@ namespace Gambot.IO.Discord
             var addressed = false;
             var text = message.Content;
 
+            string to = null;
             if (message.Content.StartsWith("gambot, ", StringComparison.OrdinalIgnoreCase))
             {
                 addressed = true;
+                to = "Gambot";
                 text = text.Substring(8);
             }
             if (socketMessage?.MentionedUsers.Any(x => x.Id == _client.CurrentUser.Id) ?? false)
             {
                 addressed = true;
+                to = _client.CurrentUser.Mention;
                 text = text.Replace(_client.CurrentUser.Mention, "").Trim();
             }
 
-            string to = null;
             var tagged = socketMessage?.MentionedUsers.FirstOrDefault(u => u.Id != _client.CurrentUser.Id);
             if (tagged != null)
             {
@@ -124,7 +126,7 @@ namespace Gambot.IO.Discord
             }
             else
             {
-                var match = Regex.Match(text, @"^(.+):.*$");
+                var match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[,:]\s");
                 if (match.Success)
                 {
                     to = match.Groups[1].Value;
