@@ -63,6 +63,10 @@ namespace Gambot.Bot
             var assemblies = GetAssemblies();
             logger.Trace("Module assemblies loaded.");
 
+            logger.Info("Loading modules and components");
+            container.Collection.Register<GambotModule>(assemblies);
+            logger.Trace("Module classes loaded");
+
             logger.Trace("Registering module components");
             logger.Trace("Registering commands...");
             container.Collection.Register<ICommand>(assemblies);
@@ -79,7 +83,7 @@ namespace Gambot.Bot
             logger.Trace("Registering transformers...");
             container.Collection.Register<ITransformer>(assemblies);
 
-            logger.Info("Module components loaded.");
+            logger.Info("Modules loaded.");
 
             logger.Trace("Registering IO");
             var io = configuration["Gambot:IO"] ?? "console";

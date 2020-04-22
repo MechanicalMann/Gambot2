@@ -11,6 +11,7 @@ namespace Gambot.Bot
 {
     public class BotProcess
     {
+        private readonly ICollection<GambotModule> _modules;
         private readonly ICollection<ICommand> _commands;
         private readonly ICollection<IListener> _listeners;
         private readonly ICollection<IResponder> _responders;
@@ -20,8 +21,9 @@ namespace Gambot.Bot
 
         private readonly ILogger _log;
 
-        public BotProcess(ICollection<ICommand> commands, ICollection<IListener> listeners, ICollection<IResponder> responders, ICollection<ITransformer> transformers, IMessenger messenger, ILogger log)
+        public BotProcess(ICollection<GambotModule> modules, ICollection<ICommand> commands, ICollection<IListener> listeners, ICollection<IResponder> responders, ICollection<ITransformer> transformers, IMessenger messenger, ILogger log)
         {
+            _modules = modules;
             _commands = commands;
             _listeners = listeners;
             _responders = responders;
@@ -33,6 +35,10 @@ namespace Gambot.Bot
         public async Task Initialize()
         {
             _log.Info("Initializing bot process.");
+            await Task.WhenAll(_modules.Select(async m => await m.Initialize()));
+            _log.Debug("Modules initialized.");
+
+            _log.Trace("Connecting to messenger...");
             var connected = await _messenger.Connect();
             if (!connected)
             {
