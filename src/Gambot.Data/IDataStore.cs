@@ -57,5 +57,21 @@ namespace Gambot.Data
         /// </summary>
         /// <param name="id">ID of the key-value pair.</param>
         Task<DataStoreValue> Get(int id);
+
+        /// <summary>
+        /// Gets the key-value pair associated with a single-value key.
+        /// </summary>
+        /// <returns>
+        /// The value associated with <paramref name="key" /> if <paramref name="key" /> exists and has only one value associated with it in the data store; otherwise <c>null</c>
+        /// </returns>
+        Task<DataStoreValue> GetSingle(string key);
+
+        /// <summary>
+        /// Adds <paramref name="value" /> to the data store as the only value associated with the given <paramref name="key" />.
+        /// If <paramref name="key" /> already has a value associated, that value will be overwritten.
+        /// If <paramref name="key" /> has multiple values associated, they will be removed.
+        /// </summary>
+        /// <returns><c>True</c> if the operation succeeded; otherwise <c>false</c></returns>
+        Task<bool> SetSingle(string key, string value);
     }
 }

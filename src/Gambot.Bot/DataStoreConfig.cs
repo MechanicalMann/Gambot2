@@ -34,8 +34,7 @@ namespace Gambot.Bot
         {
             _log.Trace($"Updating config value {key} to \"{value}\"");
             var dataStore = await _dataStoreProvider.GetDataStore("Config");
-            await dataStore.RemoveAll(key);
-            var success = await dataStore.Add(key, value);
+            var success = await dataStore.SetSingle(key, value);
             if (!success)
                 _log.Warn($"Unable to update config value for {key}");
             else

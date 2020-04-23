@@ -34,25 +34,24 @@ namespace Gambot.Module.People
                 return null;
 
             var dataStore = await _dataStoreProvider.GetDataStore("PersonHistory");
-            await dataStore.RemoveAll(context.Channel);
 
             if (match.Groups[1].Success)
             {
-                await dataStore.Add(context.Channel, context.From);
+                await dataStore.SetSingle(context.Channel, context.From);
                 return context.From;
             }
 
             if (match.Groups[2].Success)
             {
                 var to = context.To ?? await GetSomeone(context.Channel) ?? context.From;
-                await dataStore.Add(context.Channel, to);
+                await dataStore.SetSingle(context.Channel, to);
                 return to;
             }
 
             if (match.Groups[3].Success)
             {
                 var someone = await GetSomeone(context.Channel) ?? context.From;
-                await dataStore.Add(context.Channel, someone);
+                await dataStore.SetSingle(context.Channel, someone);
                 return someone;
             }
 

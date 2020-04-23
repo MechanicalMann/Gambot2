@@ -137,5 +137,31 @@ namespace Gambot.Data.SQLite
             var args = new { key };
             return await Execute(query, args);
         }
+
+        public async Task<DataStoreValue> GetSingle(string key)
+        {
+            var query = $"select rowid, key, value from \"{_dataStore}\" where key like @key order by rowid limit 2;";
+            var result = await Query(query, new { key });
+            if (result.Count() != 1)
+                return null;
+            return result.Single();
+        }
+
+        public async Task<bool> SetSingle(string key, string value)
+        {
+            var query = $"select rowid, key, value from \"{_dataStore}\" where key like @key order by rowid limit 2;";
+            var result = await Query(query, new { key });
+            int count = result.Count();
+            if (count == 1)
+            {
+                var updated = await Execute($"update \"{_dataStore}\" set value = @value where key like @key", new { key, value });
+                return updated == 1;
+            }
+            if (result.Count() > 1)
+            {
+                await RemoveAll(key);
+            }
+            return await Add(key, value);
+        }
     }
 }

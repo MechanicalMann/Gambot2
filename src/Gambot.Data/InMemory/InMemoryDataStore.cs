@@ -54,6 +54,14 @@ namespace Gambot.Data.InMemory
             return Task.FromResult(new DataStoreValue(-1, element.Key, values.ElementAt(_random.Next(0, values.Count))));
         }
 
+        public Task<DataStoreValue> GetSingle(string key)
+        {
+            var value = _data[key].SingleOrDefault();
+            if (value == null)
+                return Task.FromResult<DataStoreValue>(null);
+            return Task.FromResult(new DataStoreValue(-1, key, value));
+        }
+
         public Task<bool> Remove(string key, string value)
         {
             return Task.FromResult(_data.Remove(key, value));
@@ -70,6 +78,14 @@ namespace Gambot.Data.InMemory
             if (count > 0)
                 _data.Remove(key);
             return Task.FromResult(count);
+        }
+
+        public Task<bool> SetSingle(string key, string value)
+        {
+            if (_data[key].Count() > 0)
+                _data.Remove(key);
+            _data.Add(key, value);
+            return Task.FromResult(true);
         }
     }
 }

@@ -30,8 +30,7 @@ namespace Gambot.Module.People
                 return message.Respond($"Sorry, {message.From}, but I don't know that pronoun.");
 
             var preferences = await _dataStoreProvider.GetDataStore("PronounPreferences");
-            await preferences.RemoveAll(message.From);
-            await preferences.Add(message.From, pronoun.Key);
+            await preferences.SetSingle(message.From, pronoun.Key);
             return message.Respond($"Ok, {message.From}.");
         }
     }
