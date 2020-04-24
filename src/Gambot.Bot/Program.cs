@@ -13,6 +13,7 @@ using Gambot.IO;
 using Gambot.IO.Discord;
 using Gambot.Module.BandName;
 using Gambot.Module.Config;
+using Gambot.Module.Conjugation;
 using Gambot.Module.Factoid;
 using Gambot.Module.People;
 using Gambot.Module.Say;
@@ -139,6 +140,7 @@ namespace Gambot.Bot
                 typeof(FactoidModule).Assembly,
                 typeof(BandNameModule).Assembly,
                 typeof(PeopleModule).Assembly,
+                typeof(ConjugationModule).Assembly,
             };
         }
 
