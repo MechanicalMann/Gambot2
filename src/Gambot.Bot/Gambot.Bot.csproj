@@ -12,6 +12,7 @@
     <ProjectReference Include="..\Gambot.IO.Discord\Gambot.IO.Discord.csproj" />
     <ProjectReference Include="..\Gambot.Module.People\Gambot.Module.People.csproj" />
     <ProjectReference Include="..\Gambot.Module.Conjugation\Gambot.Module.Conjugation.csproj" />
+    <ProjectReference Include="..\Gambot.Module.Dice\Gambot.Module.Dice.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
