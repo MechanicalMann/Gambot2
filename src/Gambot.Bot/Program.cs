@@ -23,6 +23,7 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using SimpleInjector;
+using Gambot.IO.Slack;
 
 namespace Gambot.Bot
 {
@@ -98,6 +99,14 @@ namespace Gambot.Bot
                 });
                 container.Register<IMessenger, DiscordMessenger>(Lifestyle.Singleton);
                 container.Register<IPersonProvider, DiscordMessenger>(Lifestyle.Singleton);
+            }
+            else if (String.Compare(io, "slack", true) == 0) {
+                container.RegisterSingleton(() => new SlackConfiguration
+                {
+                    Token = configuration["Slack:Token"],
+                });
+                container.Register<IMessenger, SlackMessenger>(Lifestyle.Singleton);
+                container.Register<IPersonProvider, SlackMessenger>(Lifestyle.Singleton);
             }
             else
             {

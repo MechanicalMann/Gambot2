@@ -23,7 +23,7 @@ namespace Gambot.IO.Discord
             _logSeverity = (LogSeverity) config.LogSeverity;
         }
 
-        public event EventHandler<OnMessageReceivedEventArgs> OnMessageReceived;
+        public event OnMessageReceivedEventHandler OnMessageReceived;
 
         public async Task<bool> Connect()
         {
@@ -81,12 +81,12 @@ namespace Gambot.IO.Discord
             return users.Select(x => GetGambotPerson(x)).Where(x => x.IsActive);
         }
 
-        private Task ReceiveMessage(SocketMessage message)
+        private async Task ReceiveMessage(SocketMessage message)
         {
             if (OnMessageReceived == null)
-                return Task.CompletedTask;
+                return;
             if (message.Author.Id == _client.CurrentUser.Id)
-                return Task.CompletedTask;
+                return;
 
             var gm = GetGambotMessage(message);
             var typing = gm.Addressed ? message.Channel.EnterTypingState() : null;
@@ -94,9 +94,8 @@ namespace Gambot.IO.Discord
             {
                 Message = gm,
             };
-            OnMessageReceived.Invoke(this, eventArgs);
+            await OnMessageReceived.Invoke(this, eventArgs);
             typing?.Dispose();
-            return Task.CompletedTask;
         }
 
         private Message GetGambotMessage(IMessage message)
@@ -116,7 +115,7 @@ namespace Gambot.IO.Discord
             {
                 addressed = true;
                 to = _client.CurrentUser.Mention;
-                text = text.Replace(_client.CurrentUser.Mention, "").Trim();
+                text = text.Replace(_client.CurrentUser.Mention, "");
             }
 
             var tagged = socketMessage?.MentionedUsers.FirstOrDefault(u => u.Id != _client.CurrentUser.Id);
@@ -134,7 +133,7 @@ namespace Gambot.IO.Discord
                 }
             }
 
-            return new Message(addressed, false, false, text, message.Channel.Id.ToString(), message.Author.Mention, to, this);
+            return new Message(addressed, false, false, text.Trim(), message.Channel.Id.ToString(), message.Author.Mention, to, this);
         }
 
         private Person GetGambotPerson(IUser user)

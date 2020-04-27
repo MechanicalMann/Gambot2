@@ -50,7 +50,7 @@ namespace Gambot.Bot
             _messenger.OnMessageReceived += HandleMessage;
         }
 
-        public async void HandleMessage(object sender, OnMessageReceivedEventArgs e)
+        public async Task HandleMessage(object sender, OnMessageReceivedEventArgs e)
         {
             var message = e.Message;
             Response response = null;

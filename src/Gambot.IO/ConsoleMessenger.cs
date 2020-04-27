@@ -15,7 +15,7 @@ namespace Gambot.IO
         private bool _connected = false;
         private Thread _inputThread = null;
 
-        public event EventHandler<OnMessageReceivedEventArgs> OnMessageReceived = delegate {};
+        public event OnMessageReceivedEventHandler OnMessageReceived;
 
         public ConsoleMessenger(ILogger log)
         {
@@ -31,7 +31,7 @@ namespace Gambot.IO
 
         public Task<bool> Connect()
         {
-            _inputThread = new Thread(() =>
+            _inputThread = new Thread(async () =>
             {
                 _log.Trace("Spinning up console listener thread.");
                 while (_connected)
@@ -55,7 +55,7 @@ namespace Gambot.IO
                         var m = new Message(addressed, false, false, message, "tty", "Human", null, this);
                         _history.Enqueue(m);
                         if (_history.Count > 100) _history.Dequeue();
-                        OnMessageReceived.Invoke(this, new OnMessageReceivedEventArgs
+                        await OnMessageReceived.Invoke(this, new OnMessageReceivedEventArgs
                         {
                             Message = m,
                         });

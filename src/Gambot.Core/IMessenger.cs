@@ -6,7 +6,7 @@ namespace Gambot.Core
 {
     public interface IMessenger : IDisposable
     {
-        event EventHandler<OnMessageReceivedEventArgs> OnMessageReceived;
+        event OnMessageReceivedEventHandler OnMessageReceived;
         Task<bool> Connect();
         Task Disconnect();
         Task SendMessage(string channel, string message, bool action);
@@ -17,4 +17,6 @@ namespace Gambot.Core
     {
         public Message Message { get; set; }
     }
+
+    public delegate Task OnMessageReceivedEventHandler(object sender, OnMessageReceivedEventArgs e);
 }
