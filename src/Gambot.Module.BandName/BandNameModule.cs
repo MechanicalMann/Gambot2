@@ -27,7 +27,7 @@ namespace Gambot.Module.BandName
             var factoids = await _dataStoreProvider.GetDataStore("Factoids");
             var values = await factoids.GetAll("band name reply");
             if (!values.Any())
-                await factoids.Add("band name reply", "\"$band\" would be a cool name for a band.");
+                await factoids.Add("band name reply", "<reply> \"$band\" would be a cool name for a band.");
         }
     }
 }

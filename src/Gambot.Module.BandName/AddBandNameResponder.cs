@@ -43,6 +43,7 @@ namespace Gambot.Module.BandName
             var factoids = await _dataStoreProvider.GetDataStore("Factoids");
             var reply = (await factoids.GetRandom("band name reply"))?.Value ?? "\"$band\" would be a cool name for a band.";
 
+            reply = reply.Replace("<reply> ", "");
             reply = Regex.Replace(reply, @"\$(?:band|tla)", expanded, RegexOptions.IgnoreCase);
 
             return message.Respond(reply);
