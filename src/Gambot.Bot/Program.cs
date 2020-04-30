@@ -11,11 +11,13 @@ using Gambot.Data.InMemory;
 using Gambot.Data.SQLite;
 using Gambot.IO;
 using Gambot.IO.Discord;
+using Gambot.IO.Slack;
 using Gambot.Module.BandName;
 using Gambot.Module.Config;
 using Gambot.Module.Conjugation;
 using Gambot.Module.Dice;
 using Gambot.Module.Factoid;
+using Gambot.Module.Mongle;
 using Gambot.Module.People;
 using Gambot.Module.Say;
 using Gambot.Module.Variables;
@@ -23,7 +25,6 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using SimpleInjector;
-using Gambot.IO.Slack;
 
 namespace Gambot.Bot
 {
@@ -100,7 +101,8 @@ namespace Gambot.Bot
                 container.Register<IMessenger, DiscordMessenger>(Lifestyle.Singleton);
                 container.Register<IPersonProvider, DiscordMessenger>(Lifestyle.Singleton);
             }
-            else if (String.Compare(io, "slack", true) == 0) {
+            else if (String.Compare(io, "slack", true) == 0)
+            {
                 container.RegisterSingleton(() => new SlackConfiguration
                 {
                     Token = configuration["Slack:Token"],
@@ -152,6 +154,7 @@ namespace Gambot.Bot
                 typeof(PeopleModule).Assembly,
                 typeof(ConjugationModule).Assembly,
                 typeof(DiceModule).Assembly,
+                typeof(MongleModule).Assembly,
             };
         }
 
