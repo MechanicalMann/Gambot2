@@ -28,7 +28,7 @@ namespace Gambot.Module.Mongle
         {
             var chance = Int32.Parse(await _config.Get("PercentChanceOfMongling", "1"));
             if (_random.Next(100) > chance)
-                return null;
+                return response;
 
             _log.Info("It's time.");
             var dataStore = await _dataStoreProvider.GetDataStore("Monglings");
