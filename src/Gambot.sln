@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.IO.Slack", "Gambot.I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.Mongle", "Gambot.Module.Mongle\Gambot.Module.Mongle.csproj", "{B02D3D7D-ECD7-46A2-86AF-1D78E23FFEC5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.Chain", "Gambot.Module.Chain\Gambot.Module.Chain.csproj", "{20F65F8E-5252-455D-A04E-F22285977D4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -226,5 +228,17 @@ Global
 		{B02D3D7D-ECD7-46A2-86AF-1D78E23FFEC5}.Release|x64.Build.0 = Release|Any CPU
 		{B02D3D7D-ECD7-46A2-86AF-1D78E23FFEC5}.Release|x86.ActiveCfg = Release|Any CPU
 		{B02D3D7D-ECD7-46A2-86AF-1D78E23FFEC5}.Release|x86.Build.0 = Release|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Debug|x64.Build.0 = Debug|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Debug|x86.Build.0 = Debug|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Release|x64.ActiveCfg = Release|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Release|x64.Build.0 = Release|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Release|x86.ActiveCfg = Release|Any CPU
+		{20F65F8E-5252-455D-A04E-F22285977D4B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

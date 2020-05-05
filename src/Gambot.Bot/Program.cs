@@ -13,6 +13,7 @@ using Gambot.IO;
 using Gambot.IO.Discord;
 using Gambot.IO.Slack;
 using Gambot.Module.BandName;
+using Gambot.Module.Chain;
 using Gambot.Module.Config;
 using Gambot.Module.Conjugation;
 using Gambot.Module.Dice;
@@ -155,6 +156,7 @@ namespace Gambot.Bot
                 typeof(ConjugationModule).Assembly,
                 typeof(DiceModule).Assembly,
                 typeof(MongleModule).Assembly,
+                typeof(ChainModule).Assembly,
             };
         }
 
