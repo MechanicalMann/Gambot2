@@ -21,7 +21,7 @@ namespace Gambot.Module.Dice
         {
             var match = Regex.Match(message.Text, @"^roll (\d?d\d+.*)$", RegexOptions.IgnoreCase);
             if (!match.Success)
-                return null;
+                return Task.FromResult<Response>(null);
 
             var dice = match.Groups[1].Value;
             try

@@ -92,7 +92,7 @@ namespace Gambot.Module.Mongle
                 sb.Append(toRepeat, repeats);
 
                 // There's a chance the rest of the message is entirely lost
-                if (_random.Next(100) > chanceChars)
+                if (_random.Next(100) > chanceSwaps)
                     sb.Append(text.Substring(idx + 1));
 
                 text = sb.ToString();
