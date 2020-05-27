@@ -17,6 +17,8 @@ namespace Gambot.Module.Config
         {
             if (!message.Addressed)
                 return null;
+            if (!message.From.IsAdmin)
+                return null;
 
             var match = Regex.Match(message.Text, @"^set config (\w+) (.+)$", RegexOptions.IgnoreCase);
             if (!match.Success)
