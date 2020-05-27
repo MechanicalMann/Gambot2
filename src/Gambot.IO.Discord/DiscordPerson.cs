@@ -23,7 +23,8 @@ namespace Gambot.IO.Discord
             var su = user as SocketGuildUser;
             if (su != null)
             {
-                Name = su.Nickname;
+                if (su.Nickname != null)
+                    Name = su.Nickname;
                 IsAdmin = su.Roles.Any(x => x.Permissions.Administrator || x.Permissions.ManageGuild);
             }
         }
