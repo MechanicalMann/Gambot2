@@ -71,14 +71,40 @@ namespace Gambot.IO.Slack
 
         public async Task<IEnumerable<Person>> GetActiveUsers(string channel)
         {
-            _log.Warn("Slack user presence is not currently supported by SlackConnector.");
+            _log.Warn("Slack user presence is not currently supported by SlackConnector.  Whether we get actually active users is basically a guess.");
             if (!_connection.ConnectedHubs.TryGetValue(channel, out var target))
                 return Enumerable.Empty<Person>();
             var users = await _connection.GetUsers();
-            var inChannel = users.Where(x => target.Members.Contains(x.Id));
+            var inChannel = users.Where(x => x.Id != _connection.Self.Id && target.Members.Contains(x.Id));
             DateTime lastSeen, cutoff = DateTime.Now.AddMinutes(-15);
             var active = inChannel.Where(x => _lastSeen.TryGetValue(x.Id, out lastSeen) && lastSeen > cutoff);
-            return active.Select(u => new Person { Name = u.Id, IsActive = true, IsAdmin = u.IsAdmin }).ToList();
+            return active.Select(u => new SlackPerson(u) { IsActive = true }).ToList();
+        }
+
+        public async Task<Person> GetPerson(string channel, string id)
+        {
+            if (!_connection.ConnectedHubs.TryGetValue(channel, out var target))
+                return null;
+            if (!target.Members.Contains(id))
+                return null;
+            var users = await _connection.GetUsers();
+            var user = users.FirstOrDefault(u => u.Id == id);
+            if (user == null)
+                return null;
+            var isActive = _lastSeen.TryGetValue(id, out var lastSeen) && lastSeen > DateTime.Now.AddMinutes(-15);
+            return new SlackPerson(user) { IsActive = isActive };
+        }
+
+        public async Task<Person> GetPersonByName(string channel, string name)
+        {
+            if (!_connection.ConnectedHubs.TryGetValue(channel, out var target))
+                return null;
+            var users = await _connection.GetUsers();
+            var user = users.FirstOrDefault(u => u.FormattedUserId == name || u.Name == name);
+            if (user == null)
+                return null;
+            var isActive = _lastSeen.TryGetValue(user.Id, out var lastSeen) && lastSeen > DateTime.Now.AddMinutes(-15);
+            return new SlackPerson(user) { IsActive = isActive };
         }
 
         private async void HandleDisconnect()

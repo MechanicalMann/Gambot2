@@ -10,6 +10,15 @@ namespace Gambot.IO
 {
     public class ConsoleMessenger : IMessenger, IPersonProvider
     {
+        private readonly Person _person = new Person 
+        {
+            Id = "Human",
+            Name = "Human",
+            Mention = "Human",
+            IsActive = true,
+            IsAdmin = true,
+        };
+
         private readonly ILogger _log;
         private readonly Queue<Message> _history = new Queue<Message>();
         private bool _connected = false;
@@ -90,7 +99,17 @@ namespace Gambot.IO
 
         public Task<IEnumerable<Person>> GetActiveUsers(string channel)
         {
-            return Task.FromResult<IEnumerable<Person>>(new [] { new Person { Name = "Human", IsActive = true, IsAdmin = true } });
+            return Task.FromResult<IEnumerable<Person>>(new [] { _person });
+        }
+
+        public Task<Person> GetPerson(string channel, string id)
+        {
+            return Task.FromResult(_person);
+        }
+
+        public Task<Person> GetPersonByName(string channel, string name)
+        {
+            return Task.FromResult(_person);
         }
     }
 }

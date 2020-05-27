@@ -78,7 +78,27 @@ namespace Gambot.IO.Discord
             if (target == null)
                 return Enumerable.Empty<Person>();
             var users = await target.GetUsersAsync().FlattenAsync();
-            return users.Select(x => GetGambotPerson(x)).Where(x => x.IsActive);
+            return users.Where(x => x.Id != _client.CurrentUser.Id).Select(x => new DiscordPerson(x)).Where(x => x.IsActive);
+        }
+
+        public async Task<Person> GetPerson(string channel, string id)
+        {
+            var target = _client.GetChannel(UInt64.Parse(channel)) as ISocketMessageChannel;
+            if (target == null)
+                return null;
+            var user = await target.GetUserAsync(UInt64.Parse(id));
+            if (user == null)
+                return null;
+            return new DiscordPerson(user);
+        }
+
+        public async Task<Person> GetPersonByName(string channel, string name)
+        {
+            var target = _client.GetChannel(UInt64.Parse(channel)) as ISocketMessageChannel;
+            if (target == null)
+                return null;
+            var users = await target.GetUsersAsync().FlattenAsync();
+            return users.Select(x => new DiscordPerson(x)).FirstOrDefault(p => p.Mention == name || p.Name == name || p.Username == p.Username);
         }
 
         private async Task ReceiveMessage(SocketMessage message)
@@ -134,19 +154,6 @@ namespace Gambot.IO.Discord
             }
 
             return new Message(addressed, false, false, text.Trim(), message.Channel.Id.ToString(), message.Author.Mention, to, this);
-        }
-
-        private Person GetGambotPerson(IUser user)
-        {
-            var person = new Person();
-            person.Name = user.Mention;
-            person.IsActive = user.Status == UserStatus.Online || user.Status == UserStatus.Idle;
-            var su = user as SocketGuildUser;
-            if (su != null)
-            {
-                person.IsAdmin = su.Roles.Any(x => x.Permissions.Administrator || x.Permissions.ManageGuild);
-            }
-            return person;
         }
 
         private Task Log(LogMessage logMessage)
