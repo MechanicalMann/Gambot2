@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.Mongle", "Gam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.Chain", "Gambot.Module.Chain\Gambot.Module.Chain.csproj", "{20F65F8E-5252-455D-A04E-F22285977D4B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gambot.Module.Quotes", "Gambot.Module.Quotes\Gambot.Module.Quotes.csproj", "{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -240,5 +242,17 @@ Global
 		{20F65F8E-5252-455D-A04E-F22285977D4B}.Release|x64.Build.0 = Release|Any CPU
 		{20F65F8E-5252-455D-A04E-F22285977D4B}.Release|x86.ActiveCfg = Release|Any CPU
 		{20F65F8E-5252-455D-A04E-F22285977D4B}.Release|x86.Build.0 = Release|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Debug|x64.Build.0 = Debug|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Debug|x86.Build.0 = Debug|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Release|x64.ActiveCfg = Release|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Release|x64.Build.0 = Release|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Release|x86.ActiveCfg = Release|Any CPU
+		{EC71CE31-AF0C-4A87-A164-A6D7C37189A7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

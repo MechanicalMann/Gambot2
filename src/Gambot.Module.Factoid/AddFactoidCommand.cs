@@ -20,7 +20,7 @@ namespace Gambot.Module.Factoid
             if (!message.Addressed)
                 return null;
 
-            var match = Regex.Match(message.Text, @"^(.+) (<[^>]+>) (.+)$");
+            var match = Regex.Match(message.Text, @"^(.+) (<[^!@>]+>) (.+)$");
             if (!match.Success)
                 return null;
             var dataStore = await _dataStoreProvider.GetDataStore("Factoids");

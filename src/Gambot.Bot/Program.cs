@@ -20,6 +20,7 @@ using Gambot.Module.Dice;
 using Gambot.Module.Factoid;
 using Gambot.Module.Mongle;
 using Gambot.Module.People;
+using Gambot.Module.Quotes;
 using Gambot.Module.Say;
 using Gambot.Module.Variables;
 using NLog;
@@ -157,6 +158,7 @@ namespace Gambot.Bot
                 typeof(DiceModule).Assembly,
                 typeof(MongleModule).Assembly,
                 typeof(ChainModule).Assembly,
+                typeof(QuotesModule).Assembly,
             };
         }
 
