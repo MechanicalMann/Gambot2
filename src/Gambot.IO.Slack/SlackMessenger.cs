@@ -166,7 +166,7 @@ namespace Gambot.IO.Slack
                 }
             }
 
-            return new Message(addressed, false, false, text.Trim(), message.ChatHub.Id, $"<@{message.User.Id}>", to, this);
+            return new Message(addressed, false, false, text.Trim(), message.ChatHub.Id, new SlackPerson(message.User) { IsActive = true }, to, this);
         }
 
         private void UpdateMessageHistory(Message message)
@@ -176,7 +176,7 @@ namespace Gambot.IO.Slack
             while (channelHistory.Count > 100)
                 if (!channelHistory.TryDequeue(out var _))
                     break;
-            _lastSeen.AddOrUpdate(message.From, DateTime.Now, (s, d) => DateTime.Now);
+            _lastSeen.AddOrUpdate(message.From.Id, DateTime.Now, (s, d) => DateTime.Now);
         }
     }
 }

@@ -32,8 +32,8 @@ namespace Gambot.Module.Conjugation
 
             var success = await dataStore.SetSingle(key, conjugation);
             if (!success)
-                return message.Respond($"Sorry, {message.From}, something went wrong.");
-            return message.Respond($"Ok, {message.From}.");
+                return message.Respond($"Sorry, {message.From.Mention}, something went wrong.");
+            return message.Respond($"Ok, {message.From.Mention}.");
         }
     }
 }

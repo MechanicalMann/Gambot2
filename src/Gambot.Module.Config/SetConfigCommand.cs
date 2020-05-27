@@ -26,7 +26,7 @@ namespace Gambot.Module.Config
             var key = match.Groups[1].Value;
             var value = match.Groups[2].Value;
             await _config.Set(key, value);
-            return message.Respond($"Ok {message.From}, changed the value of {key} to \"{value}\"");
+            return message.Respond($"Ok {message.From.Mention}, changed the value of {key} to \"{value}\"");
         }
     }
 }

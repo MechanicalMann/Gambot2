@@ -27,11 +27,11 @@ namespace Gambot.Module.People
 
             var pronoun = (await pronouns.GetAll(key)).SingleOrDefault();
             if (pronoun == null)
-                return message.Respond($"Sorry, {message.From}, but I don't know that pronoun.");
+                return message.Respond($"Sorry, {message.From.Mention}, but I don't know that pronoun yet.");
 
             var preferences = await _dataStoreProvider.GetDataStore("PronounPreferences");
-            await preferences.SetSingle(message.From, pronoun.Key);
-            return message.Respond($"Ok, {message.From}.");
+            await preferences.SetSingle(message.From.Id, pronoun.Key);
+            return message.Respond($"Ok, {message.From.Mention}.");
         }
     }
 }

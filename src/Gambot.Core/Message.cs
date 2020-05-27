@@ -8,7 +8,7 @@ namespace Gambot.Core
         public bool Action { get; }
         public string Text { get; }
         public string Channel { get; }
-        public string From { get; }
+        public Person From { get; }
         public string To { get; }
 
         public Message(string text, IMessenger messenger)
@@ -17,7 +17,7 @@ namespace Gambot.Core
             Messenger = messenger;
         }
 
-        public Message(bool addressed, bool direct, bool action, string text, string channel, string from, string to, IMessenger messenger)
+        public Message(bool addressed, bool direct, bool action, string text, string channel, Person from, string to, IMessenger messenger)
         {
             Addressed = addressed;
             Direct = direct;

@@ -28,10 +28,10 @@ namespace Gambot.Module.Variables
             var values = await dataStore.RemoveAll(variable);
 
             if (values == 0)
-                return message.Respond($"There's no such variable, {message.From}!");
+                return message.Respond($"There's no such variable, {message.From.Mention}!");
             if (values == 1)
-                return message.Respond($"Ok, {message.From}, deleted variable \"{variable}\" and its value.");
-            return message.Respond($"Ok, {message.From}, deleted variable \"{variable}\" and its {values} values.");
+                return message.Respond($"Ok, {message.From.Mention}, deleted variable \"{variable}\" and its value.");
+            return message.Respond($"Ok, {message.From.Mention}, deleted variable \"{variable}\" and its {values} values.");
         }
     }
 }

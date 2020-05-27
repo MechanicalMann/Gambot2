@@ -30,7 +30,7 @@ namespace Gambot.Module.Factoid
             if (lastFactoid == null)
                 return message.Respond("¯\\_(ツ)_/¯");
 
-            return message.Respond($"{message.From}, that was {lastFactoid.Value}");
+            return message.Respond($"{message.From.Mention}, that was {lastFactoid.Value}");
         }
     }
 }

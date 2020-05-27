@@ -29,7 +29,7 @@ namespace Gambot.Module.Variables
             var values = await dataStore.GetAll(variable);
 
             if (!values.Any())
-                return message.Respond($"There's no such variable, {message.From}!");
+                return message.Respond($"There's no such variable, {message.From.Mention}!");
             
             var list = String.Join(", ", values.Select(v => $"(#{v.Id}) {v.Value}"));
             return message.Respond($"{variable}: {list}");

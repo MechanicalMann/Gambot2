@@ -153,7 +153,7 @@ namespace Gambot.IO.Discord
                 }
             }
 
-            return new Message(addressed, false, false, text.Trim(), message.Channel.Id.ToString(), message.Author.Mention, to, this);
+            return new Message(addressed, false, false, text.Trim(), message.Channel.Id.ToString(), new DiscordPerson(message.Author), to, this);
         }
 
         private Task Log(LogMessage logMessage)

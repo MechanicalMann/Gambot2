@@ -30,7 +30,7 @@ namespace Gambot.Module.Factoid
             var values = await dataStore.GetAll(trigger);
 
             if (!values.Any())
-                return message.Respond($"Sorry, {message.From}, but I don't know about \"{trigger}.\"");
+                return message.Respond($"Sorry, {message.From.Mention}, but I don't know about \"{trigger}.\"");
 
             var result = String.Join(", ", values.Select(x => $"(#{x.Id}) {x.Value}"));
 

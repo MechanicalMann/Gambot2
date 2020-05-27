@@ -30,8 +30,8 @@ namespace Gambot.Module.Variables
                 removed = await dataStore.Remove(Int32.Parse(match.Groups[3].Value));
             
             if (!removed)
-                return message.Respond($"There's no such value, {message.From}!");
-            return message.Respond($"Ok, {message.From}");
+                return message.Respond($"There's no such value, {message.From.Mention}!");
+            return message.Respond($"Ok, {message.From.Mention}");
         }
     }
 }

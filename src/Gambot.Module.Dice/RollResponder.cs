@@ -28,12 +28,12 @@ namespace Gambot.Module.Dice
             {
                 var result = Dice.Roll(dice).ToString("0.##");
                 var n = result.StartsWith("8") || result == "18" ? "n" : "";
-                return Task.FromResult(message.Respond($"{message.From}, you rolled a{n} {result}!"));
+                return Task.FromResult(message.Respond($"{message.From.Mention}, you rolled a{n} {result}!"));
             }
             catch (AleaException ex)
             {
                 _log.Warn(ex, $"An error occurred when attempting to roll dice \"{dice}\": {ex.Message}");
-                return Task.FromResult(message.Respond($"I can't roll that, {message.From}!"));
+                return Task.FromResult(message.Respond($"I can't roll that, {message.From.Mention}!"));
             }
         }
     }

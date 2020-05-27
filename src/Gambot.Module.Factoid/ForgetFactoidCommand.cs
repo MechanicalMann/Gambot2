@@ -29,8 +29,8 @@ namespace Gambot.Module.Factoid
             var removed = await dataStore.Remove(id);
 
             if (!removed)
-                return message.Respond($"I didn't know anything by that number, {message.From}!");
-            return message.Respond($"Ok, {message.From}.");
+                return message.Respond($"I didn't know anything by that number, {message.From.Mention}!");
+            return message.Respond($"Ok, {message.From.Mention}.");
         }
     }
 }

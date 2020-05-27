@@ -30,13 +30,13 @@ namespace Gambot.Module.Factoid
             var response = match.Groups[3].Value;
 
             if (verb == "alias" && String.Compare(trigger, response, true) == 0)
-                return message.Respond($"Sorry, {message.From}, but you can't alias {trigger} to itself.");
+                return message.Respond($"Sorry, {message.From.Mention}, but you can't alias {trigger} to itself.");
 
             var added = await dataStore.Add(trigger, $"{verb} {response}");
 
             if (!added)
-                return message.Respond($"I already knew that, {message.From}!");
-            return message.Respond($"Ok, {message.From}.");
+                return message.Respond($"I already knew that, {message.From.Mention}!");
+            return message.Respond($"Ok, {message.From.Mention}.");
         }
     }
 }

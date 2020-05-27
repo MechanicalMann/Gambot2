@@ -61,7 +61,7 @@ namespace Gambot.IO
                             message = message.Substring(to.Length);
                             addressed = String.Compare("gambot", to, true) == 0;
                         }
-                        var m = new Message(addressed, false, false, message, "tty", "Human", null, this);
+                        var m = new Message(addressed, false, false, message, "tty", _person, null, this);
                         _history.Enqueue(m);
                         if (_history.Count > 100) _history.Dequeue();
                         await OnMessageReceived.Invoke(this, new OnMessageReceivedEventArgs

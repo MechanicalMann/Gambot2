@@ -28,8 +28,8 @@ namespace Gambot.Module.Variables
             var added = await dataStore.Add(variable, value);
 
             if (!added)
-                return message.Respond($"I already had it that way, {message.From}!");
-            return message.Respond($"Ok, {message.From}.");
+                return message.Respond($"I already had it that way, {message.From.Mention}!");
+            return message.Respond($"Ok, {message.From.Mention}.");
         }
     }
 }
