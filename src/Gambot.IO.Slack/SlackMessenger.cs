@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gambot.Core;
 using SlackConnector;
@@ -121,7 +121,7 @@ namespace Gambot.IO.Slack
                 return;
             if (message.User.Id == _connection.Self.Id)
                 return;
-            
+
             var gm = GetGambotMessage(message);
             UpdateMessageHistory(gm);
             if (gm.Addressed)
@@ -135,14 +135,19 @@ namespace Gambot.IO.Slack
 
         private Message GetGambotMessage(SlackMessage message)
         {
+            var direct = message.ChatHub.Type == SlackChatHubType.DM;
+            var action = message.MessageSubType == SlackMessageSubType.MeMessage;
             var addressed = false;
             var text = message.Text;
             string to = null;
 
+            if (direct)
+            {
+                addressed = true;
+            }
             if (text.StartsWith("gambot, ", StringComparison.OrdinalIgnoreCase))
             {
                 addressed = true;
-                to = "Gambot";
                 text = text.Substring(8);
             }
             if (message.MentionsBot)
@@ -151,22 +156,29 @@ namespace Gambot.IO.Slack
                 text = text.Replace($"<@{_connection.Self.Id}>", "");
             }
 
-            var match = Regex.Match(text, @"<@([a-zA-Z0-9]+)>");
-            if (match.Success)
+            if (addressed)
             {
-                to = match.Value;
+                to = "Gambot";
             }
             else
             {
-                match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[,:]\s");
+                var match = Regex.Match(text, @"<@([a-zA-Z0-9]+)>");
                 if (match.Success)
                 {
-                    to = match.Groups[1].Value;
-                    text = text.Substring(match.Groups[1].Length);
+                    to = match.Value;
+                }
+                else
+                {
+                    match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[,:]\s");
+                    if (match.Success)
+                    {
+                        to = match.Groups[1].Value;
+                        text = text.Substring(match.Groups[1].Length);
+                    }
                 }
             }
 
-            return new Message(addressed, false, false, text.Trim(), message.ChatHub.Id, new SlackPerson(message.User) { IsActive = true }, to, this);
+            return new Message(addressed, direct, action, text.Trim(), message.ChatHub.Id, new SlackPerson(message.User) { IsActive = true }, to, this);
         }
 
         private void UpdateMessageHistory(Message message)

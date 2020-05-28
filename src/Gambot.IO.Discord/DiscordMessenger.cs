@@ -121,14 +121,18 @@ namespace Gambot.IO.Discord
         private Message GetGambotMessage(IMessage message)
         {
             var socketMessage = message as SocketMessage;
+            var direct = (message.Channel as SocketDMChannel) != null;
             var addressed = false;
             var text = message.Content;
-
             string to = null;
+
+            if (direct)
+            {
+                addressed = true;
+            }
             if (message.Content.StartsWith("gambot, ", StringComparison.OrdinalIgnoreCase))
             {
                 addressed = true;
-                to = "Gambot";
                 text = text.Substring(8);
             }
             if (socketMessage?.MentionedUsers.Any(x => x.Id == _client.CurrentUser.Id) ?? false)
@@ -138,22 +142,41 @@ namespace Gambot.IO.Discord
                 text = text.Replace(_client.CurrentUser.Mention, "");
             }
 
-            var tagged = socketMessage?.MentionedUsers.FirstOrDefault(u => u.Id != _client.CurrentUser.Id);
-            if (tagged != null)
+            if (addressed)
             {
-                to = tagged.Mention;
+                to = "Gambot";
             }
             else
             {
-                var match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[,:]\s");
-                if (match.Success)
+                var tagged = socketMessage?.MentionedUsers.FirstOrDefault(u => u.Id != _client.CurrentUser.Id);
+                if (tagged != null)
                 {
-                    to = match.Groups[1].Value;
-                    text = text.Substring(match.Groups[1].Length);
+                    to = tagged.Mention;
+                }
+                else
+                {
+                    var match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[,:]\s");
+                    if (match.Success)
+                    {
+                        to = match.Groups[1].Value;
+                        text = text.Substring(match.Groups[1].Length);
+                    }
                 }
             }
 
-            return new Message(addressed, false, false, text.Trim(), message.Channel.Id.ToString(), new DiscordPerson(message.Author), to, this);
+            // Discord doesn't have a separate message type for /me messages
+            // since it never tried to be IRC. But there is a /me command that
+            // italicizes your entire message using underscores, which is
+            // interesting, because if you use ctrl+I to italicize it uses
+            // asterisks. So we can make a mildly educated guess here about
+            // whether the message is likely a /me message by testing whether
+            // the whole thing is surrounded in single underscores. There will
+            // undoubtedly be false positives for anyone using Markdown manually
+            // or people who learned Slack's "markdown" first, but this whole
+            // /me message concept has always been a bit fly-by-night anyway.
+            var guess = Regex.Match(text, @"^_[^_]+_$");
+
+            return new Message(addressed, direct, guess.Success, text.Trim(), message.Channel.Id.ToString(), new DiscordPerson(message.Author), to, this);
         }
 
         private Task Log(LogMessage logMessage)
