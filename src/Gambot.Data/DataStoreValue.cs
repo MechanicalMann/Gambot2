@@ -21,5 +21,7 @@ namespace Gambot.Data
         {
             return Value;
         }
+
+        public string ToFullString() => $"{Key}: (#{Id}) {Value}";
     }
 }

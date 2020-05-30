@@ -61,6 +61,9 @@ namespace Gambot.Bot
             if (String.Compare("sqlite", dataStore, true) == 0)
                 container.Register<IDataStoreProvider>(() => new SQLiteDataStoreProvider(configuration["ConnectionStrings:Gambot"]), Lifestyle.Singleton);
 
+            var dataDumpDirectory = configuration["Gambot:DataDumpDirectory"] ?? "dump";
+            container.Register<IDataDumper>(() => new UrlFileDataDumper(dataDumpDirectory, container.GetInstance<IConfig>(), container.GetInstance<IDataStoreProvider>()), Lifestyle.Singleton);
+
             logger.Trace("Registering config provider");
             container.Register<IConfig, DataStoreConfig>(Lifestyle.Singleton);
 

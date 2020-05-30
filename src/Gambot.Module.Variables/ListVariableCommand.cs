@@ -10,9 +10,11 @@ namespace Gambot.Module.Variables
     public class ListVariableCommand : ICommand
     {
         private readonly IDataStoreProvider _dataStoreProvider;
+        private readonly IDataDumper _dataDumper;
 
-        public ListVariableCommand(IDataStoreProvider dataStoreProvider)
+        public ListVariableCommand(IDataStoreProvider dataStoreProvider, IDataDumper dataDumper)
         {
+            _dataDumper = dataDumper;
             _dataStoreProvider = dataStoreProvider;
         }
 
@@ -30,7 +32,13 @@ namespace Gambot.Module.Variables
 
             if (!values.Any())
                 return message.Respond($"There's no such variable, {message.From.Mention}!");
-            
+
+            if (values.Count() > 10 || values.Sum(x => x.Value.Length) > 500)
+            {
+                var url = await _dataDumper.Dump("Variables", variable);
+                return message.Respond($"${variable}: {url}");
+            }
+
             var list = String.Join(", ", values.Select(v => $"(#{v.Id}) {v.Value}"));
             return message.Respond($"{variable}: {list}");
         }

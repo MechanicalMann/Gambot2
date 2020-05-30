@@ -352,3 +352,6 @@ MigrationBackup/
 
 # SQLite Database
 *.db
+
+# Gambot data dump directory
+dump/
