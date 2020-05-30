@@ -17,12 +17,13 @@ namespace Gambot.Module.Config
         {
             if (!message.Addressed)
                 return null;
-            if (!message.From.IsAdmin)
-                return null;
 
             var match = Regex.Match(message.Text, @"^set config (\w+) (.+)$", RegexOptions.IgnoreCase);
             if (!match.Success)
                 return null;
+
+            if (!message.From.IsAdmin)
+                return message.Respond($"I'm afraid I can't let you do that, {message.From.Mention}.");
 
             // TODO: Permissions
             var key = match.Groups[1].Value;

@@ -19,13 +19,15 @@ namespace Gambot.IO.Discord
             Discriminator = user.Discriminator;
 
             IsActive = user.Status == UserStatus.Online || user.Status == UserStatus.Idle;
-            
+
             var su = user as SocketGuildUser;
             if (su != null)
             {
                 if (su.Nickname != null)
                     Name = su.Nickname;
-                IsAdmin = su.Roles.Any(x => x.Permissions.Administrator || x.Permissions.ManageGuild);
+                IsAdmin = su.GuildPermissions.Administrator
+                    || su.GuildPermissions.ManageGuild
+                    || su.Roles.Any(x => x.Permissions.Administrator || x.Permissions.ManageGuild);
             }
         }
     }
