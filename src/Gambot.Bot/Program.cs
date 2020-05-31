@@ -170,14 +170,15 @@ namespace Gambot.Bot
             const string defaultMessageLayout = "${longdate} [${pad:padding=5:inner=${level:uppercase=true}}] ${processid}:${threadid} ${logger} - ${message} ${exception:format=tostring}";
             var layout = configuration["Logging:Layout"] ?? defaultMessageLayout;
             var level = LogLevel.FromString(configuration["Logging:DefaultLevel"] ?? "Info");
+            var logfile = configuration["Logging:LogFile"];
 
             var logConfig = new LoggingConfiguration();
 
-            if (!Environment.UserInteractive)
+            if (!String.IsNullOrEmpty(logfile))
             {
                 var fileTarget = new FileTarget
                 {
-                    FileName = configuration["Logging:LogFile"] ?? "gambot.log",
+                    FileName = logfile ?? "gambot.log",
                     Layout = layout
                 };
                 logConfig.AddTarget("file", fileTarget);
@@ -185,17 +186,15 @@ namespace Gambot.Bot
                 var fileRule = new LoggingRule("*", level, fileTarget);
                 logConfig.LoggingRules.Add(fileRule);
             }
-            else
+            
+            var consoleTarget = new ColoredConsoleTarget
             {
-                var consoleTarget = new ColoredConsoleTarget
-                {
-                    Layout = layout
-                };
-                logConfig.AddTarget("console", consoleTarget);
+                Layout = layout
+            };
+            logConfig.AddTarget("console", consoleTarget);
 
-                var consoleRule = new LoggingRule("*", level, consoleTarget);
-                logConfig.LoggingRules.Add(consoleRule);
-            }
+            var consoleRule = new LoggingRule("*", level, consoleTarget);
+            logConfig.LoggingRules.Add(consoleRule);
 
             LogManager.GlobalThreshold = level;
             LogManager.Configuration = logConfig;

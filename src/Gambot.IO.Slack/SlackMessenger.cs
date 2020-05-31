@@ -111,6 +111,7 @@ namespace Gambot.IO.Slack
         {
             _log.Warn("Connection interrupted.  Attempting to reconnect.");
             _connection.OnDisconnect -= HandleDisconnect;
+            _connection.OnMessageReceived -= ReceiveMessage;
             _connection = null;
             await Connect();
         }

@@ -27,7 +27,7 @@ namespace Gambot.Module.Dice
             try
             {
                 var result = Dice.Roll(dice).ToString("0.##");
-                var n = result.StartsWith("8") || result == "18" ? "n" : "";
+                var n = result.StartsWith("8") || result == "18" || result == "11" ? "n" : "";
                 return Task.FromResult(message.Respond($"{message.From.Mention}, you rolled a{n} {result}!"));
             }
             catch (AleaException ex)
