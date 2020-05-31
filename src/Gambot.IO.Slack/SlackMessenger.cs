@@ -170,7 +170,7 @@ namespace Gambot.IO.Slack
                 }
                 else
                 {
-                    match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[,:]\s");
+                    match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[:]\s");
                     if (match.Success)
                     {
                         to = match.Groups[1].Value;

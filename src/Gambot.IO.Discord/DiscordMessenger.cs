@@ -155,7 +155,7 @@ namespace Gambot.IO.Discord
                 }
                 else
                 {
-                    var match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[,:]\s");
+                    var match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[:]\s");
                     if (match.Success)
                     {
                         to = match.Groups[1].Value;
