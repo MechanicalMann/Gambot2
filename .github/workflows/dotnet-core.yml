@@ -26,3 +26,16 @@ jobs:
     - name: Test
       run: dotnet test --no-restore --verbosity normal
       working-directory: src
+    - name: Publish
+      run: dotnet publish --no-restore --verbosity normal --configuration Release --runtime linux-x64 -o ../publish
+      working-directory: src
+    - name: Archive
+      run: tar czf ../gambot.tar.gz .
+      working-directory: publish
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        # Artifact name
+        name: gambot
+        # A file, directory or wildcard pattern that describes what to upload
+        path: gambot.tar.gz
