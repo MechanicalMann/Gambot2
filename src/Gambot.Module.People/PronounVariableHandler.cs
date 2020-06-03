@@ -9,11 +9,11 @@ namespace Gambot.Module.People
 {
     public class PronounVariableHandler : IVariableHandler
     {
-        private static string[] _subjective = new string[] { "subjective", "they", "shehe", "heshe" };
-        private static string[] _objective = new string[] { "objective", "them", "herhim", "himher" };
-        private static string[] _determiner = new string[] { "determiner", "their", "herhis", "hisher" };
-        private static string[] _possessive = new string[] { "possessive", "theirs", "hershis", "hishers" };
-        private static string[] _reflexive = new string[] { "reflexive", "themself", "herhimself", "himherself", "herselfhimself", "himselfherself" };
+        private static string[] _subjective = new string[] { "subjective", "they", "shehe", "heshe", "she", "he", "it" };
+        private static string[] _objective = new string[] { "objective", "them", "herhim", "himher", "her", "him" };
+        private static string[] _determiner = new string[] { "determiner", "their", "herhis", "hisher", "his", "her", "its" };
+        private static string[] _possessive = new string[] { "possessive", "theirs", "hershis", "hishers", "hers" };
+        private static string[] _reflexive = new string[] { "reflexive", "themself", "herhimself", "himherself", "herselfhimself", "himselfherself", "herself", "himself", "itself" };
 
         private readonly Dictionary<PartOfSpeech, string[]> _mapping = new Dictionary<PartOfSpeech, string[]>
         { { PartOfSpeech.Subjective, _subjective },
