@@ -38,7 +38,7 @@ namespace Gambot.Module.People
             var preferences = await _dataStoreProvider.GetDataStore("PronounPreferences");
             var pronouns = await _dataStoreProvider.GetDataStore("Pronouns");
 
-            var gender = lastKnown != null ? (await preferences.GetAll(lastKnown)).FirstOrDefault()?.Value ?? "they" : "they";
+            var gender = lastKnown != null ? (await preferences.GetRandom(lastKnown))?.Value ?? "they" : "they";
 
             var list = (await pronouns.GetAll(gender)).Single().Value;
 

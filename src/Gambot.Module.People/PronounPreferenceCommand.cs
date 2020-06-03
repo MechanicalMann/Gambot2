@@ -25,12 +25,12 @@ namespace Gambot.Module.People
             var pronouns = await _dataStoreProvider.GetDataStore("Pronouns");
             var key = match.Groups[1].Value.ToLowerInvariant();
 
-            var pronoun = (await pronouns.GetAll(key)).SingleOrDefault();
+            var pronoun = await pronouns.GetSingle(key);
             if (pronoun == null)
                 return message.Respond($"Sorry, {message.From.Mention}, but I don't know that pronoun yet.");
 
             var preferences = await _dataStoreProvider.GetDataStore("PronounPreferences");
-            await preferences.SetSingle(message.From.Id, pronoun.Key);
+            await preferences.Add(message.From.Id, pronoun.Key);
             return message.Respond($"Ok, {message.From.Mention}.");
         }
     }
