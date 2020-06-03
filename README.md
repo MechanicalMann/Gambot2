@@ -2,6 +2,8 @@
 
 _The orphaned daughter shall have her revenge._
 
+![.NET Core](https://github.com/malorisdead/Gambot2/workflows/.NET%20Core/badge.svg?branch=master)
+
 Gambot 2 is a ground-up rewrite of [Gambot](https://github.com/Milk-Enterprises/Gambot) in .NET Core.
 
 ## What's a Gambot?
