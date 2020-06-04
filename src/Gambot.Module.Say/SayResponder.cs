@@ -12,7 +12,7 @@ namespace Gambot.Module.Say
             Response response = null;
             if (message.Addressed)
             {
-                match = Regex.Match(message.Text, "say \"(.+)\"");
+                match = Regex.Match(message.Text, "say \"(.+)\"", RegexOptions.IgnoreCase);
                 if (match.Success)
                 {
                     response = message.Respond(match.Groups[1].Value);
@@ -20,7 +20,7 @@ namespace Gambot.Module.Say
             }
             else
             {
-                match = Regex.Match(message.Text, @"^say (\S)([^.?!]+)[.?!]*$");
+                match = Regex.Match(message.Text, @"^say (\S)([^.?!]+)[.?!]*$", RegexOptions.IgnoreCase);
                 if (match.Success)
                 {
                     response = message.Respond($"{match.Groups[1].Value.ToUpper()}{match.Groups[2].Value}!");
