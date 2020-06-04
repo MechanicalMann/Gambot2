@@ -19,7 +19,7 @@ namespace Gambot.Module.People
         {
             if (!message.Addressed)
                 return null;
-            var match = Regex.Match(message.Text, @"^I go by ([\w/]+)$", RegexOptions.IgnoreCase);
+            var match = Regex.Match(message.Text, @"^I go by ([\w/]+)\.?$", RegexOptions.IgnoreCase);
             if (!match.Success)
                 return null;
             var pronouns = await _dataStoreProvider.GetDataStore("Pronouns");
