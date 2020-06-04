@@ -40,7 +40,7 @@ namespace Gambot.Module.People
 
             var gender = lastKnown != null ? (await preferences.GetRandom(lastKnown))?.Value ?? "they" : "they";
 
-            var list = (await pronouns.GetAll(gender)).Single().Value;
+            var list = (await pronouns.GetSingle(gender))?.Value ?? "they;them;their;theirs;themself";
 
             return list.Split(';') [(int) partOfSpeech];
         }
