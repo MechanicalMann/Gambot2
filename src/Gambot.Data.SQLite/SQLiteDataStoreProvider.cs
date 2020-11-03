@@ -25,7 +25,7 @@ namespace Gambot.Data.SQLite
             
             var ds = new SQLiteDataStore(_connection, key.ToLowerInvariant());
             await ds.Initialize();
-            _dataStores.Add(key, ds);
+            _dataStores[key] = ds;
             return ds;
         }
     }

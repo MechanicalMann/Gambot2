@@ -9,9 +9,24 @@ using Gambot.Data;
 
 namespace Gambot.Module.Variables
 {
+    readonly struct VariableReference {
+        public VariableReference(Match match) {
+            Variable = match.Groups[2].Value.ToLowerInvariant();
+            Key = match.Groups[3].Success
+                ? match.Groups[3].Value.ToLowerInvariant()
+                : null;
+        }
+        public VariableReference(string variable, string key) {
+            Variable = variable;
+            Key = key;
+        }
+        public string Variable { get; }
+        public string Key { get; }
+    }
+
     public class VariableTransformer : ITransformer
     {
-        private readonly Regex _variableRegex = new Regex(@"((?:^| )an? )?\$([a-z][a-z0-9_]*(?<!_))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private readonly Regex _variableRegex = new Regex(@"((?:^| )an? )?\$([a-z][a-z0-9_]*(?<!_))(?:\[([^\]]+)\])?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private readonly char[] _vowels = new [] { 'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U' };
 
@@ -37,7 +52,7 @@ namespace Gambot.Module.Variables
 
         private async Task<string> Substitute(string text, Message context)
         {
-            var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var replacements = new Dictionary<VariableReference, string>();
             var sb = new StringBuilder();
             var i = 0;
 
@@ -52,7 +67,7 @@ namespace Gambot.Module.Variables
             return sb.ToString();
         }
 
-        private async Task<string> Substitute(Match match, Message context, Dictionary<string, string> replacements)
+        private async Task<string> Substitute(Match match, Message context, IDictionary<VariableReference, string> replacements)
         {
             var variable = match.Groups[2].Value;
             var key = variable.ToLowerInvariant();
@@ -60,9 +75,10 @@ namespace Gambot.Module.Variables
 
             var replaced = false;
 
-            if (replacements.ContainsKey(key))
+            var reference = new VariableReference(match);
+            if (reference.Key != null && replacements.ContainsKey(reference))
             {
-                substitution = replacements[key];
+                substitution = replacements[reference];
                 replaced = true;
             }
             else
@@ -73,7 +89,8 @@ namespace Gambot.Module.Variables
                     if (value != null)
                     {
                         substitution = value;
-                        replacements[key] = substitution;
+                        if (reference.Key != null)
+                            replacements[reference] = substitution;
                         replaced = true;
                         break;
                     }
