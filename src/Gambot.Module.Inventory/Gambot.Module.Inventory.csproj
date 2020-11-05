@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gambot.Core\Gambot.Core.csproj" />
+    <ProjectReference Include="..\Gambot.Data\Gambot.Data.csproj" />
+    <ProjectReference Include="..\Gambot.Module.Factoid\Gambot.Module.Factoid.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+</Project>

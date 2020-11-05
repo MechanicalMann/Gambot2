@@ -18,6 +18,7 @@ using Gambot.Module.Config;
 using Gambot.Module.Conjugation;
 using Gambot.Module.Dice;
 using Gambot.Module.Factoid;
+using Gambot.Module.Inventory;
 using Gambot.Module.Mongle;
 using Gambot.Module.People;
 using Gambot.Module.Quotes;
@@ -88,6 +89,9 @@ namespace Gambot.Bot
 
             logger.Trace("Registering responders...");
             container.Collection.Register<IResponder>(assemblies);
+
+            logger.Trace("Registering specifically FactoidResponder...");
+            container.Register<FactoidResponder>();
 
             logger.Trace("Registering transformers...");
             container.Collection.Register<ITransformer>(assemblies);
@@ -162,6 +166,7 @@ namespace Gambot.Bot
                 typeof(MongleModule).Assembly,
                 typeof(ChainModule).Assembly,
                 typeof(QuotesModule).Assembly,
+                typeof(InventoryModule).Assembly,
             };
         }
 
