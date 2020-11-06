@@ -73,5 +73,18 @@ namespace Gambot.Data
         /// </summary>
         /// <returns><c>True</c> if the operation succeeded; otherwise <c>false</c></returns>
         Task<bool> SetSingle(string key, string value);
+
+        /// <summary>
+        /// Returns the number of values associated with the given key
+        /// <paramref name="key" /> The key to count values for
+        /// </summary>
+        Task<int> GetCount(string key);
+
+        /// <summary>
+        /// Returns whether the given value has been associated with the given key
+        /// <param name="key">The key to look for</param>
+        /// <param name="value">The value to look for</param>
+        /// </summary>
+        Task<bool> Contains(string key, string value);
     }
 }

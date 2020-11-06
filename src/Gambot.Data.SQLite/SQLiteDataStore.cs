@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -34,25 +35,33 @@ namespace Gambot.Data.SQLite
 
         private Task<IEnumerable<DataStoreValue>> Query(string query, object args = null)
         {
-            return Task.Run<IEnumerable<DataStoreValue>>(() =>
+            return RawQuery<DataStoreValue>(query, args, (reader) =>
             {
-                var data = new List<DataStoreValue>();
+                var row = new DataStoreValue();
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    var column = reader.GetName(i);
+                    if (column == "rowid")
+                        row.Id = reader.GetInt32(i);
+                    else if (column == "key")
+                        row.Key = reader.GetString(i);
+                    else if (column == "value")
+                        row.Value = reader.GetString(i);
+                }
+                return row;
+            });
+        }
+
+        private Task<IEnumerable<T>> RawQuery<T>(string query, object args, Func<IDataReader, T> mapper)
+        {
+            return Task.Run<IEnumerable<T>>(() =>
+            {
+                var data = new List<T>();
                 using(var cmd = CreateCommand(query, args))
                 using(var reader = cmd.ExecuteReader())
                 while (reader.Read())
                 {
-                    var row = new DataStoreValue();
-                    for (int i = 0; i < reader.FieldCount; i++)
-                    {
-                        var column = reader.GetName(i);
-                        if (column == "rowid")
-                            row.Id = reader.GetInt32(i);
-                        else if (column == "key")
-                            row.Key = reader.GetString(i);
-                        else if (column == "value")
-                            row.Value = reader.GetString(i);
-                    }
-                    data.Add(row);
+                    data.Add(mapper(reader));
                 }
                 return data;
             });
@@ -162,6 +171,22 @@ namespace Gambot.Data.SQLite
                 await RemoveAll(key);
             }
             return await Add(key, value);
+        }
+
+        public async Task<int> GetCount(string key)
+        {
+            var query = $"select count(rowId) from \"{_dataStore}\" where key like @key;";
+            var args = new { key };
+            var result = await RawQuery<int>(query, args, (reader) => reader.GetInt32(0));
+            return result.Single();
+        }
+
+        public async Task<bool> Contains(string key, string value)
+        {
+            var query = $"select count(rowId) from \"{_dataStore}\" where \"key\" like @key and \"value\" like @value;";
+            var args = new { key, value };
+            var result = await RawQuery<bool>(query, args, (reader) => reader.GetInt32(0) > 0);
+            return result.Single();
         }
     }
 }

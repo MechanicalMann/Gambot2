@@ -87,5 +87,15 @@ namespace Gambot.Data.InMemory
             _data.Add(key, value);
             return Task.FromResult(true);
         }
+
+        public Task<int> GetCount(string key)
+        {
+            return Task.FromResult(_data[key].Count());
+        }
+
+        public Task<bool> Contains(string key, string value)
+        {
+            return Task.FromResult(_data[key].Any(val => val == value));
+        }
     }
 }

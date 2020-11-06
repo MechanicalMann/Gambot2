@@ -76,7 +76,12 @@ namespace Gambot.Module.Variables
             var replaced = false;
 
             var reference = new VariableReference(match);
-            if (reference.Key != null && replacements.ContainsKey(reference))
+            if (context.Variables.ContainsKey(key))
+            {
+                substitution = context.Variables[key];
+                replaced = true;
+            }
+            else if (reference.Key != null && replacements.ContainsKey(reference))
             {
                 substitution = replacements[reference];
                 replaced = true;
