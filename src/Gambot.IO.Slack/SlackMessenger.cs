@@ -174,7 +174,7 @@ namespace Gambot.IO.Slack
                     if (match.Success)
                     {
                         to = match.Groups[1].Value;
-                        text = text.Substring(match.Groups[1].Length);
+                        text = text.Substring(match.Groups[0].Length);
                     }
                 }
             }

@@ -58,7 +58,7 @@ namespace Gambot.IO
                         if (match.Success)
                         {
                             to = match.Groups[1].Value;
-                            message = message.Substring(to.Length);
+                            message = message.Substring(to.Length + 2);
                             addressed = String.Compare("gambot", to, true) == 0;
                         }
                         var m = new Message(addressed, false, false, message, "tty", _person, null, this);
