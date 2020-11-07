@@ -167,6 +167,7 @@ namespace Gambot.IO.Slack
                 if (match.Success)
                 {
                     to = match.Value;
+                    text = text.Replace(to, "").Trim();
                 }
                 else
                 {

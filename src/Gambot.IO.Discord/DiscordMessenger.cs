@@ -152,6 +152,7 @@ namespace Gambot.IO.Discord
                 if (tagged != null)
                 {
                     to = tagged.Mention;
+                    text = text.Replace(to, "").Trim();
                 }
                 else
                 {
