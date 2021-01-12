@@ -9,7 +9,7 @@ using Gambot.Module.Factoid;
 
 namespace Gambot.Module.Inventory
 {
-    readonly struct Trigger
+    class Trigger
     {
         public Trigger(string regex, bool addressed)
         {
