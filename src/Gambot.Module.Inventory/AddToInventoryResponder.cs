@@ -9,13 +9,23 @@ using Gambot.Module.Factoid;
 
 namespace Gambot.Module.Inventory
 {
+    class Trigger
+    {
+        public Trigger(string regex, bool addressed)
+        {
+            Regex = new Regex(regex, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Addressed = addressed;
+        }
+        public Regex Regex { get; }
+        public bool Addressed { get; }
+    }
     public class AddToInventoryResponder : IResponder
     {
-        private readonly Regex[] _commandRegexen = new []
+        private readonly Trigger[] _triggers = new[]
         {
-            new Regex("^(?:I give|gives) (.+) to gambot$", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-            new Regex("^(?:I give|gives) gambot (.+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-            new Regex("^(?:take|have) (.+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+            new Trigger("^(?:(?:I give)|gives) (.+) to gambot$", false),
+            new Trigger("^(?:(?:I give)|gives) gambot (.+)$", false),
+            new Trigger("^(?:take|have) (.+)$", true),
         };
 
         private IDataStoreProvider _dataStoreProvider;
@@ -36,7 +46,6 @@ namespace Gambot.Module.Inventory
                 return null;
 
             var inventory = await _dataStoreProvider.GetDataStore("Inventory");
-            var items = (await inventory.GetAll("CurrentInventory")).ToList();
 
             if (await inventory.Contains("CurrentInventory", item))
             {
@@ -45,7 +54,7 @@ namespace Gambot.Module.Inventory
             }
 
             Response response = null;
-            var limit = Int32.Parse(await _config.Get("InventoryLimit", "10"));
+            var limit = int.Parse(await _config.Get("InventoryLimit", "10"));
             if (await inventory.GetCount("CurrentInventory") >= limit)
             {
                 // drop something
@@ -68,9 +77,11 @@ namespace Gambot.Module.Inventory
 
         private string GetItem(Message message)
         {
-            foreach (var regex in _commandRegexen)
+            foreach (var trigger in _triggers)
             {
-                var match = regex.Match(message.Text);
+                if (trigger.Addressed && !message.Addressed)
+                    continue;
+                var match = trigger.Regex.Match(message.Text);
                 if (match.Success)
                     return match.Groups[1].Value;
             }
