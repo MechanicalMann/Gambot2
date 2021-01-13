@@ -11,11 +11,13 @@ namespace Gambot.Module.Factoid
     {
         private readonly IDataStoreProvider _dataStoreProvider;
         private readonly IConfig _config;
+        private readonly Random _random;
 
         public FactoidResponder(IDataStoreProvider dataStoreProvider, IConfig config)
         {
             _dataStoreProvider = dataStoreProvider;
             _config = config;
+            _random = new Random();
         }
         public async Task<Response> Respond(Message message)
         {
@@ -47,6 +49,9 @@ namespace Gambot.Module.Factoid
 
                 await historyStore.SetSingle(message.Channel, $"(#{reply.Id}) \"{factoid.ToString()}\"");
 
+                if (_random.Next(100) > factoid.ChanceToTrigger)
+                    return null;
+
                 if (factoid.Verb == "reply")
                     return message.Respond(factoid.Response);
                 if (factoid.Verb == "action")
@@ -58,15 +63,24 @@ namespace Gambot.Module.Factoid
 
         private static Factoid ParseFactoid(string trigger, string partial)
         {
-            var match = Regex.Match(partial, @"^<(.+?)> (.+)");
+            // Matches `<verb> response`, or `<verb|n%> response`.
+            // In the former case, group 2 (the percentage) will be "", which defaults to 100%.
+            var match = Regex.Match(partial, @"^<(.+?)(?:\|(?!.*\|)(.*?)%)?> (.+)");
             if (!match.Success)
                 return null;
-            return new Factoid
+
+            var factoid = new Factoid
             {
                 Trigger = trigger,
-                    Verb = match.Groups[1].Value,
-                    Response = match.Groups[2].Value,
+                Verb = match.Groups[1].Value,
+                ChanceToTrigger = 100.0m,
+                Response = match.Groups[3].Value,
             };
+
+            if (!String.IsNullOrEmpty(match.Groups[2].Value))
+                factoid.ChanceToTrigger = Decimal.Parse(match.Groups[2].Value);
+
+            return factoid;
         }
     }
 }

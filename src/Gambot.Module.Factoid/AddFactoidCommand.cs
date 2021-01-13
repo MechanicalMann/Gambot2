@@ -27,6 +27,18 @@ namespace Gambot.Module.Factoid
 
             var trigger = match.Groups[1].Value.ToLowerInvariant();
             var verb = match.Groups[2].Value.ToLowerInvariant();
+
+            var percentMatch = Regex.Match(verb, @"\|(?!.*\|)(.*?)%>$");
+            if (percentMatch.Success)
+            {
+                decimal chanceToTrigger;
+                if (!Decimal.TryParse(percentMatch.Groups[1].Value, out chanceToTrigger))
+                    return message.Respond($"Sorry, {message.From.Mention}, but {verb} is not properly formatted.");
+
+                if (chanceToTrigger <= 0 || chanceToTrigger > 100)
+                    return message.Respond($"Sorry, {message.From.Mention}, but {verb} does not contain a valid percentage.");
+            }
+
             var response = match.Groups[3].Value;
 
             if (verb == "<alias>" && String.Compare(trigger, response, true) == 0)

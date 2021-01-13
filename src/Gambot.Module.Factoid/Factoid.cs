@@ -5,7 +5,7 @@ namespace Gambot.Module.Factoid
         public string Trigger { get; set; }
         public string Verb { get; set; }
         public string Response { get; set; }
-
-        public override string ToString() => $"{Trigger} <{Verb}> {Response}";
+        public decimal ChanceToTrigger { get; set; }
+        public override string ToString() => $"{Trigger} <{Verb}|{ChanceToTrigger}%> {Response}";
     }
 }
