@@ -109,7 +109,7 @@ namespace Gambot.Bot
 
             if (response == null)
             {
-                _log.Debug("No response generated.");
+                _log.Trace("No response generated.");
                 return;
             }
 
