@@ -54,12 +54,12 @@ namespace Gambot.IO.Slack
             }
         }
 
-        public async Task<IEnumerable<Message>> GetMessageHistory(string channel, string user = null)
+        public Task<IEnumerable<Message>> GetMessageHistory(string channel, string user = null)
         {
             _log.Warn("Slack message history is not currently supported by SlackConnector.");
             if (!_history.TryGetValue(channel, out var history))
-                return Enumerable.Empty<Message>();
-            return history.ToList();
+                return Task.FromResult(Enumerable.Empty<Message>());
+            return Task.FromResult<IEnumerable<Message>>(history.ToList());
         }
 
         public async Task SendMessage(string channel, string message, bool action)
