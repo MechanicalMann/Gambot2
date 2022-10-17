@@ -59,10 +59,4 @@ jobs:
           REMOTE_PORT: ${{ secrets.DEPLOY_PORT }}
           SOURCE: gambot.tar.gz
           TARGET: ${{ secrets.DEPLOY_TARGET }}
-      - name: Run deployment script
-        uses: kevin-leptons/ssh_action@v1
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          command: ${{ secrets.DEPLOY_COMMAND }}
     
