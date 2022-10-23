@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SlackConnector" Version="5.1.0" />
+    <PackageReference Include="SlackConnector" Version="5.1.11" />
   </ItemGroup>
 
   <PropertyGroup>
