@@ -1,18 +1,16 @@
 using Gambot.Core;
-using SlackConnector.Models;
+using SlackNet;
 
 namespace Gambot.IO.Slack
 {
     public class SlackPerson : Person
     {
-        public SlackPerson(SlackUser user)
+        public SlackPerson(User user)
         {
             Id = user.Id;
             Name = user.Name;
-            Mention = user.FormattedUserId;
-            // SlackConnector does not provide an easy way to determine whether
-            // a user is active or not.  The SlackMessenger should handle this.
             IsAdmin = user.IsAdmin;
+            Mention = $"<@{user.Id}>";
         }
     }
 }

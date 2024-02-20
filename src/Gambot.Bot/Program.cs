@@ -114,7 +114,6 @@ namespace Gambot.Bot
             {
                 container.RegisterSingleton(() => new SlackConfiguration
                 {
-                    Token = configuration["Slack:Token"],
                     ApiToken = configuration["Slack:ApiToken"],
                     AppLevelToken = configuration["Slack:AppLevelToken"]
                 });
