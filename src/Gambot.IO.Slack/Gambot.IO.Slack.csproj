@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="SlackConnector" Version="5.1.11" />
+    <PackageReference Include="SlackNet" Version="0.12.2" />
   </ItemGroup>
 
   <PropertyGroup>
