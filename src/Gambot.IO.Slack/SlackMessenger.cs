@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Gambot.Core;
 using SlackNet;
+using SlackNet.Events;
 using ILogger = Gambot.Core.ILogger;
 
 namespace Gambot.IO.Slack
@@ -12,6 +14,7 @@ namespace Gambot.IO.Slack
     {
         private readonly ILogger _log;
         private readonly SlackConfiguration _config;
+        private readonly ConcurrentDictionary<string, Person> _personCache = new ConcurrentDictionary<string, Person>();
         private ISlackApiClient _apiClient;
         private ISlackSocketModeClient _socketClient;
         private SlackMessageHandler _messageHandler;
@@ -47,13 +50,24 @@ namespace Gambot.IO.Slack
                 _log.Debug("Got a connection, testing authorizations and getting bot user ID.");
                 var identity = await _apiClient.Auth.Test();
                 _userId = identity.UserId;
-                _log.Info("Connected to Slack!");
             }
             catch (Exception ex)
             {
                 _log.Error(ex, "Unable to connect to Slack.");
                 return false;
             }
+            try
+            {
+                _log.Debug("Caching user info.");
+                await InitUserCache();
+                _log.Debug("User info cached.");
+            }
+            catch (Exception ex)
+            {
+                _log.Error(ex, "Unable to populate user info cache.");
+                throw;
+            }
+            _log.Info("Connected to Slack!");
             return true;
         }
 
@@ -66,6 +80,33 @@ namespace Gambot.IO.Slack
         public void Dispose()
         {
             _socketClient?.Dispose();
+        }
+
+        private async Task InitUserCache()
+        {
+            _log.Trace("Initializing user cache.");
+            _personCache.Clear();
+            var people = await _apiClient.Users.List(limit: 200);
+            _log.Debug($"Found {people.Members.Count} members in the Slack, caching...");
+            foreach (var m in people.Members)
+            {
+                if (m.Deleted)
+                {
+                    _log.Trace($"Skipping deleted user {m.Id}");
+                    continue;
+                }
+                if (!_personCache.TryAdd(m.Id, new SlackPerson(m)))
+                {
+                    _log.Warn($"Found duplicate user when populating user cache: {m.Id}");
+                }
+            }
+        }
+
+        public Task HandleProfileChanged(object o, OnProfileChangedEventArgs e)
+        {
+            var person = new SlackPerson(e.Event.User);
+            _personCache.AddOrUpdate(person.Id, person, (_, __) => person);
+            return Task.CompletedTask;
         }
 
         public async Task<IEnumerable<Person>> GetActiveUsers(string channel)
