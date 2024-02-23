@@ -1,3 +1,4 @@
+using System;
 using Gambot.Core;
 using SlackNet;
 
@@ -8,9 +9,16 @@ namespace Gambot.IO.Slack
         public SlackPerson(User user)
         {
             Id = user.Id;
-            Name = user.Name;
+            Name = !String.IsNullOrWhiteSpace(user.Profile.DisplayName) ? user.Profile.DisplayName : user.Name;
             IsAdmin = user.IsAdmin;
             Mention = $"<@{user.Id}>";
+        }
+
+        public SlackPerson(Person person) : base(person) { }
+
+        public SlackPerson WithPresence(Presence presence)
+        {
+            return new SlackPerson(this) { IsActive = presence == Presence.Active };
         }
     }
 }

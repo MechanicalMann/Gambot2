@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gambot.Core;
 using SlackNet;
@@ -14,7 +15,8 @@ namespace Gambot.IO.Slack
     {
         private readonly ILogger _log;
         private readonly SlackConfiguration _config;
-        private readonly ConcurrentDictionary<string, Person> _personCache = new ConcurrentDictionary<string, Person>();
+        private readonly ConcurrentDictionary<string, SlackPerson> _personCache = new ConcurrentDictionary<string, SlackPerson>();
+        private Regex _botMention;
         private ISlackApiClient _apiClient;
         private ISlackSocketModeClient _socketClient;
         private SlackMessageHandler _messageHandler;
@@ -43,6 +45,12 @@ namespace Gambot.IO.Slack
                             OnMessageReceived = OnMessageReceived
                         };
                         return _messageHandler;
+                    })
+                    .RegisterEventHandler((ctx) =>
+                    {
+                        var profileChanged = new SlackProfileChangedHandler();
+                        profileChanged.OnProfileChanged += HandleProfileChanged;
+                        return profileChanged;
                     });
                 _socketClient = serviceBuilder.GetSocketModeClient();
                 _apiClient = serviceBuilder.GetApiClient();
@@ -86,27 +94,60 @@ namespace Gambot.IO.Slack
         {
             _log.Trace("Initializing user cache.");
             _personCache.Clear();
-            var people = await _apiClient.Users.List(limit: 200);
-            _log.Debug($"Found {people.Members.Count} members in the Slack, caching...");
-            foreach (var m in people.Members)
+
+            string cursor = null;
+            while (true)
             {
-                if (m.Deleted)
+                var result = await _apiClient.Users.List(cursor, limit: 50);
+
+                _log.Debug($"Found {result.Members.Count} members in the Slack, caching...");
+                foreach (var m in result.Members)
                 {
-                    _log.Trace($"Skipping deleted user {m.Id}");
-                    continue;
+                    if (m.Deleted)
+                    {
+                        _log.Trace($"Skipping deleted user {m.Id}");
+                        continue;
+                    }
+                    if (!_personCache.TryAdd(m.Id, new SlackPerson(m)))
+                    {
+                        _log.Warn($"Found duplicate user when populating user cache: {m.Id}");
+                    }
                 }
-                if (!_personCache.TryAdd(m.Id, new SlackPerson(m)))
+
+                cursor = result.ResponseMetadata?.NextCursor;
+                if (String.IsNullOrEmpty(cursor))
                 {
-                    _log.Warn($"Found duplicate user when populating user cache: {m.Id}");
+                    break;
                 }
             }
         }
 
         public Task HandleProfileChanged(object o, OnProfileChangedEventArgs e)
         {
+            _log.Trace($"Got updated profile data for user {e.Event.User.Id}");
             var person = new SlackPerson(e.Event.User);
             _personCache.AddOrUpdate(person.Id, person, (_, __) => person);
+            _log.Trace($"User data cache updated");
             return Task.CompletedTask;
+        }
+
+        internal async Task<SlackPerson> GetCachedPerson(string id)
+        {
+            if (_personCache.TryGetValue(id, out var person))
+            {
+                _log.Trace($"Got cached profile info for user {id}");
+                return person;
+            }
+            _log.Warn($"User data cache miss: unknown person with ID {id}");
+            var user = await _apiClient.Users.Info(id);
+            if (user == null)
+            {
+                _log.Error($"Slack returned no data for user with ID {id}");
+                return null;
+            }
+            person = new SlackPerson(user);
+            _personCache.AddOrUpdate(person.Id, person, (_, __) => person);
+            return person;
         }
 
         public async Task<IEnumerable<Person>> GetActiveUsers(string channel)
@@ -119,11 +160,7 @@ namespace Gambot.IO.Slack
             }));
             return await Task.WhenAll(presences
                 .Where(p => p.presence == Presence.Active)
-                .Select(async p =>
-                {
-                    var u = await _apiClient.Users.Info(p.id);
-                    return new SlackPerson(u) { IsActive = true };
-                })
+                .Select(async p => (await GetCachedPerson(p.id)).WithPresence(Presence.Active))
             );
         }
 
@@ -131,32 +168,24 @@ namespace Gambot.IO.Slack
         {
             _log.Warn("Getting history is expensive right now! Build a user info cache!");
             var history = await _apiClient.Conversations.History(channel, limit: 200);
-            return await Task.WhenAll(history.Messages.Select(async m => await _messageHandler.GetGambotMessage(m)));
+            return await Task.WhenAll(history.Messages.Select(async m => await GetGambotMessage(m)));
         }
 
         public async Task<Person> GetPerson(string channel, string id)
         {
-            var user = _apiClient.Users.Info(id);
+            var person = GetCachedPerson(id);
             var presence = _apiClient.Users.GetPresence(id);
-            await Task.WhenAll(user, presence);
-            return new SlackPerson(user.Result)
-            {
-                IsActive = presence.Result == Presence.Active
-            };
+            await Task.WhenAll(person, presence);
+            return person.Result.WithPresence(presence.Result);
         }
 
         public async Task<Person> GetPersonByName(string channel, string name)
         {
-            var allUsers = _apiClient.Users.List(limit: 200); // TODO: paginate through results
-            var inChannel = _apiClient.Conversations.Members(channel, limit: 200);
-            await Task.WhenAll(allUsers, inChannel);
-            var user = allUsers.Result.Members
-                .Where(m => inChannel.Result.Members.Contains(m.Id) && (m.Name == name || m.Profile.DisplayName == name))
-                .FirstOrDefault();
-            if (user == null)
-                return null;
-            var presence = await _apiClient.Users.GetPresence(user.Id);
-            return new SlackPerson(user) { IsActive = presence == Presence.Active };
+            var person = _personCache.Values.FirstOrDefault(p =>
+                String.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase)
+                || String.Equals(p.Mention, name, StringComparison.OrdinalIgnoreCase));
+            var presence = await _apiClient.Users.GetPresence(person.Id);
+            return person.WithPresence(presence);
         }
 
         public async Task SendMessage(string channel, string message, bool action)
@@ -173,6 +202,56 @@ namespace Gambot.IO.Slack
                     Channel = channel,
                 });
             }
+        }
+
+        internal async Task<Message> GetGambotMessage(MessageEvent e)
+        {
+            var direct = e.ChannelType == "im";
+            var action = e.Subtype == "me_message";
+            var addressed = false;
+            var text = e.Text;
+            string to = null;
+
+            if (direct)
+            {
+                addressed = true;
+            }
+            if (text.StartsWith("gambot, ", StringComparison.OrdinalIgnoreCase))
+            {
+                addressed = true;
+                text = text.Substring(8);
+            }
+            if (_botMention.Match(text).Success)
+            {
+                addressed = true;
+                text = text.Replace($"<@{_userId}>", "");
+            }
+
+            if (addressed)
+            {
+                to = "Gambot";
+            }
+            else
+            {
+                var match = Regex.Match(text, @"<@([a-zA-Z0-9]+)>");
+                if (match.Success)
+                {
+                    to = match.Value;
+                    text = text.Replace(to, "").Trim();
+                }
+                else
+                {
+                    match = Regex.Match(text, @"^((?:[^:<>""]+?)|(?:[\\<]?:.+?:(?:\d+>)?))[:]\s");
+                    if (match.Success)
+                    {
+                        to = match.Groups[1].Value;
+                        text = text.Substring(match.Groups[0].Length);
+                    }
+                }
+            }
+
+            var person = await GetCachedPerson(e.User);
+            return new Message(addressed, direct, action, text.Trim(), e.Channel, person, to, this);
         }
     }
 }
