@@ -19,7 +19,6 @@ namespace Gambot.IO.Slack
         private Regex _botMention;
         private ISlackApiClient _apiClient;
         private ISlackSocketModeClient _socketClient;
-        private SlackMessageHandler _messageHandler;
         private string _userId;
 
         public SlackMessenger(SlackConfiguration config, ILogger log)
@@ -40,11 +39,9 @@ namespace Gambot.IO.Slack
                     .UseAppLevelToken(_config.AppLevelToken)
                     .RegisterEventHandler(ctx =>
                     {
-                        _messageHandler = new SlackMessageHandler(ctx.ServiceProvider.GetApiClient(), _log.GetChildLog(typeof(SlackMessageHandler).Name), this, _userId)
-                        {
-                            OnMessageReceived = OnMessageReceived
-                        };
-                        return _messageHandler;
+                        var messageHandler = new SlackMessageHandler();
+                        messageHandler.OnSlackMessage += HandleMessage;
+                        return messageHandler;
                     })
                     .RegisterEventHandler((ctx) =>
                     {
@@ -58,6 +55,7 @@ namespace Gambot.IO.Slack
                 _log.Debug("Got a connection, testing authorizations and getting bot user ID.");
                 var identity = await _apiClient.Auth.Test();
                 _userId = identity.UserId;
+                _botMention = new Regex($"<@{_userId}>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             }
             catch (Exception ex)
             {
@@ -79,15 +77,27 @@ namespace Gambot.IO.Slack
             return true;
         }
 
-        public async Task Disconnect()
+        public Task Disconnect()
         {
-            await _apiClient?.Users.SetPresence(RequestPresence.Away);
             _socketClient?.Disconnect();
+            return Task.CompletedTask;
         }
 
         public void Dispose()
         {
             _socketClient?.Dispose();
+            _socketClient = null;
+        }
+
+        private async Task HandleMessage(object o, OnSlackMessageEventArgs e)
+        {
+            if (OnMessageReceived == null)
+                return;
+            if (e.Event.User == _userId)
+                return;
+            _log.Trace($"Got message: ({e.Event.Type}:{e.Event.Subtype} in team {e.Event.Team} #{e.Event.Channel} [{e.Event.ChannelType}]) ID: {e.Event.ClientMsgId}");
+            var message = await GetGambotMessage(e.Event);
+            await OnMessageReceived.Invoke(this, new OnMessageReceivedEventArgs { Message = message });
         }
 
         private async Task InitUserCache()
