@@ -39,24 +39,4 @@ jobs:
         name: gambot
         # A file, directory or wildcard pattern that describes what to upload
         path: gambot.tar.gz
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    # Should only run on pushes to the main branch
-    if: ${{ github.ref == 'refs/heads/master' }}
-    steps:
-      - name: Get latest build
-        uses: actions/download-artifact@v2.0.10
-        with:
-          name: gambot
-      - name: Deploy to server
-        uses: easingthemes/ssh-deploy@v2.2.11
-        with:
-          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_KEY }}
-          REMOTE_HOST: ${{ secrets.DEPLOY_HOST }}
-          REMOTE_USER: ${{ secrets.DEPLOY_USER }}
-          REMOTE_PORT: ${{ secrets.DEPLOY_PORT }}
-          SOURCE: gambot.tar.gz
-          TARGET: ${{ secrets.DEPLOY_TARGET }}
     
