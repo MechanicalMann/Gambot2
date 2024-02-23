@@ -22,7 +22,7 @@ Gambot is written in C# and designed to run anywhere .NET Core can be installed.
 
 ## Getting Started
 
-To run Gambot, you will need a machine with the .NET Core runtime version 2.1
+To run Gambot, you will need a machine with the .NET Core runtime version 8
 or higher installed.
 
 ```bash
