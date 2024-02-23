@@ -2,6 +2,7 @@
 {
     public class SlackConfiguration
     {
-        public string Token { get; set; }
+        public string ApiToken { get; set; }
+        public string AppLevelToken { get; set; }
     }
 }

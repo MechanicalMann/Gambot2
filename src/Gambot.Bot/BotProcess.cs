@@ -67,6 +67,14 @@ namespace Gambot.Bot
                 catch (Exception ex)
                 {
                     _log.Error(ex, $"An error occurred while {command} was handling: {ex.Message}");
+                    try
+                    {
+                        await _messenger.SendMessage(message.Channel, "I tried my best, but something went wrong!", false);
+                    }
+                    catch (Exception sendEx)
+                    {
+                        _log.Error(sendEx, "Additionally, encountered an error while trying to notify the channel.");
+                    }
                 }
             }
             if (response != null)

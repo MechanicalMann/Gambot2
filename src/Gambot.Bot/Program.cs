@@ -105,7 +105,7 @@ namespace Gambot.Bot
                 container.RegisterSingleton(() => new DiscordConfiguration
                 {
                     Token = configuration["Discord:Token"],
-                        LogSeverity = 5 - LogManager.GlobalThreshold.Ordinal
+                    LogSeverity = 5 - LogManager.GlobalThreshold.Ordinal
                 });
                 container.Register<IMessenger, DiscordMessenger>(Lifestyle.Singleton);
                 container.Register<IPersonProvider, DiscordMessenger>(Lifestyle.Singleton);
@@ -114,7 +114,8 @@ namespace Gambot.Bot
             {
                 container.RegisterSingleton(() => new SlackConfiguration
                 {
-                    Token = configuration["Slack:Token"],
+                    ApiToken = configuration["Slack:ApiToken"],
+                    AppLevelToken = configuration["Slack:AppLevelToken"]
                 });
                 container.Register<IMessenger, SlackMessenger>(Lifestyle.Singleton);
                 container.Register<IPersonProvider, SlackMessenger>(Lifestyle.Singleton);
@@ -135,7 +136,7 @@ namespace Gambot.Bot
             logger.Info("Starting bot process.");
             var processor = container.GetInstance<BotProcess>();
 
-            Console.CancelKeyPress += async(sender, eventArgs) =>
+            Console.CancelKeyPress += async (sender, eventArgs) =>
             {
                 logger.Info("Shutting down...");
                 await processor.Stop();
@@ -151,7 +152,7 @@ namespace Gambot.Bot
         private static IEnumerable<Assembly> GetAssemblies()
         {
             // Still a temp implementation...
-            return new []
+            return new[]
             {
                 typeof(IDataStore).Assembly,
                 typeof(ConsoleMessenger).Assembly,
@@ -191,7 +192,7 @@ namespace Gambot.Bot
                 var fileRule = new LoggingRule("*", level, fileTarget);
                 logConfig.LoggingRules.Add(fileRule);
             }
-            
+
             var consoleTarget = new ColoredConsoleTarget
             {
                 Layout = layout

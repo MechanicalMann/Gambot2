@@ -21,6 +21,9 @@ namespace Gambot.Module.BandName
 
         public async Task<Response> Respond(Message message)
         {
+            if (message.Addressed)
+                return null;
+
             var match = Regex.Match(message.Text, @"^([a-z]\w*)\s+([a-z]\w*)\s+([a-z]\w*)$", RegexOptions.IgnoreCase);
             if (!match.Success)
                 return null;
@@ -32,7 +35,7 @@ namespace Gambot.Module.BandName
 
             var bandNameDataStore = await _dataStoreProvider.GetDataStore("BandNames");
 
-            var words = new [] { match.Groups[1].Value, match.Groups[2].Value, match.Groups[3].Value };
+            var words = new[] { match.Groups[1].Value, match.Groups[2].Value, match.Groups[3].Value };
 
             var expanded = String.Join(" ", words);
             var tla = String.Concat(words.Select(x => x.First())).ToUpperInvariant();

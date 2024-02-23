@@ -23,7 +23,7 @@ namespace Gambot.Bot
             var value = (await dataStore.GetAll(key)).FirstOrDefault();
             if (value == null)
             {
-                _log.Debug($"No config value set for {key}, defaulting to {defaultValue ?? "null"}");
+                _log.Trace($"No config value set for {key}, defaulting to {defaultValue ?? "null"}");
                 return defaultValue;
             }
             _log.Trace($"Successfully got config value \"{value.Value}\" for {key}");

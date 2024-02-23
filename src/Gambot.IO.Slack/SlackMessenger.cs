@@ -5,8 +5,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Gambot.Core;
-using SlackConnector;
-using SlackConnector.Models;
+using SlackNet;
+using SlackNet.Events;
+using ILogger = Gambot.Core.ILogger;
 
 namespace Gambot.IO.Slack
 {
@@ -14,11 +15,11 @@ namespace Gambot.IO.Slack
     {
         private readonly ILogger _log;
         private readonly SlackConfiguration _config;
-
-        private readonly ConcurrentDictionary<string, ConcurrentQueue<Message>> _history = new ConcurrentDictionary<string, ConcurrentQueue<Message>>();
-        private readonly ConcurrentDictionary<string, DateTime> _lastSeen = new ConcurrentDictionary<string, DateTime>();
-
-        private ISlackConnection _connection;
+        private readonly ConcurrentDictionary<string, SlackPerson> _personCache = new ConcurrentDictionary<string, SlackPerson>();
+        private Regex _botMention;
+        private ISlackApiClient _apiClient;
+        private ISlackSocketModeClient _socketClient;
+        private string _userId;
 
         public SlackMessenger(SlackConfiguration config, ILogger log)
         {
@@ -30,116 +31,195 @@ namespace Gambot.IO.Slack
 
         public async Task<bool> Connect()
         {
-            _log.Debug("Connecting to Slack.");
-            var connector = new SlackConnector.SlackConnector();
-            _connection = await connector.Connect(_config.Token);
-            _connection.OnMessageReceived += ReceiveMessage;
-            _connection.OnDisconnect += HandleDisconnect;
+            _log.Debug("Connecting to Slack...");
+            try
+            {
+                var serviceBuilder = new SlackServiceBuilder()
+                    .UseApiToken(_config.ApiToken)
+                    .UseAppLevelToken(_config.AppLevelToken)
+                    .RegisterEventHandler(ctx =>
+                    {
+                        var messageHandler = new SlackMessageHandler();
+                        messageHandler.OnSlackMessage += HandleMessage;
+                        return messageHandler;
+                    })
+                    .RegisterEventHandler((ctx) =>
+                    {
+                        var profileChanged = new SlackProfileChangedHandler();
+                        profileChanged.OnProfileChanged += HandleProfileChanged;
+                        return profileChanged;
+                    });
+                _socketClient = serviceBuilder.GetSocketModeClient();
+                _apiClient = serviceBuilder.GetApiClient();
+                await _socketClient.Connect();
+                _log.Debug("Got a connection, testing authorizations and getting bot user ID.");
+                var identity = await _apiClient.Auth.Test();
+                _userId = identity.UserId;
+                _botMention = new Regex($"<@{_userId}>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            }
+            catch (Exception ex)
+            {
+                _log.Error(ex, "Unable to connect to Slack.");
+                return false;
+            }
+            try
+            {
+                _log.Debug("Caching user info.");
+                await InitUserCache();
+                _log.Debug("User info cached.");
+            }
+            catch (Exception ex)
+            {
+                _log.Error(ex, "Unable to populate user info cache.");
+                throw;
+            }
+            _log.Info("Connected to Slack!");
             return true;
         }
 
-        public async Task Disconnect()
+        public Task Disconnect()
         {
-            _connection.OnDisconnect -= HandleDisconnect;
-            await _connection.Close();
+            _socketClient?.Disconnect();
+            return Task.CompletedTask;
         }
 
         public void Dispose()
         {
-            if (_connection != null)
+            _socketClient?.Dispose();
+            _socketClient = null;
+        }
+
+        private async Task HandleMessage(object o, OnSlackMessageEventArgs e)
+        {
+            if (OnMessageReceived == null)
+                return;
+            if (e.Event.User == _userId)
+                return;
+            _log.Trace($"Got message: ({e.Event.Type}:{e.Event.Subtype} in team {e.Event.Team} #{e.Event.Channel} [{e.Event.ChannelType}]) ID: {e.Event.ClientMsgId}");
+            var message = await GetGambotMessage(e.Event);
+            await OnMessageReceived.Invoke(this, new OnMessageReceivedEventArgs { Message = message });
+        }
+
+        private async Task InitUserCache()
+        {
+            _log.Trace("Initializing user cache.");
+            _personCache.Clear();
+
+            string cursor = null;
+            while (true)
             {
-                _connection.OnDisconnect -= HandleDisconnect;
-                _connection.Close().GetAwaiter().GetResult();
-                _connection = null;
+                var result = await _apiClient.Users.List(cursor, limit: 50);
+
+                _log.Debug($"Found {result.Members.Count} members in the Slack, caching...");
+                foreach (var m in result.Members)
+                {
+                    if (m.Deleted)
+                    {
+                        _log.Trace($"Skipping deleted user {m.Id}");
+                        continue;
+                    }
+                    if (!_personCache.TryAdd(m.Id, new SlackPerson(m)))
+                    {
+                        _log.Warn($"Found duplicate user when populating user cache: {m.Id}");
+                    }
+                }
+
+                cursor = result.ResponseMetadata?.NextCursor;
+                if (String.IsNullOrEmpty(cursor))
+                {
+                    break;
+                }
             }
         }
 
-        public Task<IEnumerable<Message>> GetMessageHistory(string channel, string user = null)
+        public Task HandleProfileChanged(object o, OnProfileChangedEventArgs e)
         {
-            _log.Warn("Slack message history is not currently supported by SlackConnector.");
-            if (!_history.TryGetValue(channel, out var history))
-                return Task.FromResult(Enumerable.Empty<Message>());
-            return Task.FromResult<IEnumerable<Message>>(history.ToList());
+            _log.Trace($"Got updated profile data for user {e.Event.User.Id}");
+            var person = new SlackPerson(e.Event.User);
+            _personCache.AddOrUpdate(person.Id, person, (_, __) => person);
+            _log.Trace($"User data cache updated");
+            return Task.CompletedTask;
         }
 
-        public async Task SendMessage(string channel, string message, bool action)
+        internal async Task<SlackPerson> GetCachedPerson(string id)
         {
-            if (!_connection.ConnectedHubs.TryGetValue(channel, out var target))
-                return;
-            await _connection.Say(new BotMessage { ChatHub = target, Text = message });
+            if (_personCache.TryGetValue(id, out var person))
+            {
+                _log.Trace($"Got cached profile info for user {id}");
+                return person;
+            }
+            _log.Warn($"User data cache miss: unknown person with ID {id}");
+            var user = await _apiClient.Users.Info(id);
+            if (user == null)
+            {
+                _log.Error($"Slack returned no data for user with ID {id}");
+                return null;
+            }
+            person = new SlackPerson(user);
+            _personCache.AddOrUpdate(person.Id, person, (_, __) => person);
+            return person;
         }
 
         public async Task<IEnumerable<Person>> GetActiveUsers(string channel)
         {
-            _log.Warn("Slack user presence is not currently supported by SlackConnector.  Whether we get actually active users is basically a guess.");
-            if (!_connection.ConnectedHubs.TryGetValue(channel, out var target))
-                return Enumerable.Empty<Person>();
-            var users = await _connection.GetUsers();
-            var inChannel = users.Where(x => x.Id != _connection.Self.Id && target.Members.Contains(x.Id));
-            DateTime lastSeen, cutoff = DateTime.Now.AddMinutes(-15);
-            var active = inChannel.Where(x => _lastSeen.TryGetValue(x.Id, out lastSeen) && lastSeen > cutoff);
-            return active.Select(u => new SlackPerson(u) { IsActive = true }).ToList();
+            var response = await _apiClient.Conversations.Members(channel);
+            var presences = await Task.WhenAll(response.Members.Select(async m =>
+            {
+                var p = await _apiClient.Users.GetPresence(m);
+                return new { id = m, presence = p };
+            }));
+            return await Task.WhenAll(presences
+                .Where(p => p.presence == Presence.Active)
+                .Select(async p => (await GetCachedPerson(p.id)).WithPresence(Presence.Active))
+            );
+        }
+
+        public async Task<IEnumerable<Message>> GetMessageHistory(string channel, string user = null)
+        {
+            _log.Warn("Getting history is expensive right now! Build a user info cache!");
+            var history = await _apiClient.Conversations.History(channel, limit: 200);
+            return await Task.WhenAll(history.Messages.Select(async m => await GetGambotMessage(m)));
         }
 
         public async Task<Person> GetPerson(string channel, string id)
         {
-            if (!_connection.ConnectedHubs.TryGetValue(channel, out var target))
-                return null;
-            if (!target.Members.Contains(id))
-                return null;
-            var users = await _connection.GetUsers();
-            var user = users.FirstOrDefault(u => u.Id == id);
-            if (user == null)
-                return null;
-            var isActive = _lastSeen.TryGetValue(id, out var lastSeen) && lastSeen > DateTime.Now.AddMinutes(-15);
-            return new SlackPerson(user) { IsActive = isActive };
+            var person = GetCachedPerson(id);
+            var presence = _apiClient.Users.GetPresence(id);
+            await Task.WhenAll(person, presence);
+            return person.Result.WithPresence(presence.Result);
         }
 
         public async Task<Person> GetPersonByName(string channel, string name)
         {
-            if (!_connection.ConnectedHubs.TryGetValue(channel, out var target))
-                return null;
-            var users = await _connection.GetUsers();
-            var user = users.FirstOrDefault(u => u.FormattedUserId == name || u.Name == name);
-            if (user == null)
-                return null;
-            var isActive = _lastSeen.TryGetValue(user.Id, out var lastSeen) && lastSeen > DateTime.Now.AddMinutes(-15);
-            return new SlackPerson(user) { IsActive = isActive };
+            var person = _personCache.Values.FirstOrDefault(p =>
+                String.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase)
+                || String.Equals(p.Mention, name, StringComparison.OrdinalIgnoreCase));
+            var presence = await _apiClient.Users.GetPresence(person.Id);
+            return person.WithPresence(presence);
         }
 
-        private async void HandleDisconnect()
+        public async Task SendMessage(string channel, string message, bool action)
         {
-            _log.Warn("Connection interrupted.  Attempting to reconnect.");
-            _connection.OnDisconnect -= HandleDisconnect;
-            _connection.OnMessageReceived -= ReceiveMessage;
-            _connection = null;
-            await Connect();
-        }
-
-        private async Task ReceiveMessage(SlackMessage message)
-        {
-            if (OnMessageReceived == null)
-                return;
-            if (message.User.Id == _connection.Self.Id)
-                return;
-
-            var gm = GetGambotMessage(message);
-            UpdateMessageHistory(gm);
-            if (gm.Addressed)
-                await _connection.IndicateTyping(message.ChatHub);
-            var eventArgs = new OnMessageReceivedEventArgs
+            if (action)
             {
-                Message = gm,
-            };
-            await OnMessageReceived.Invoke(this, eventArgs);
+                await _apiClient.Chat.MeMessage(channel, message);
+            }
+            else
+            {
+                await _apiClient.Chat.PostMessage(new SlackNet.WebApi.Message
+                {
+                    Text = message,
+                    Channel = channel,
+                });
+            }
         }
 
-        private Message GetGambotMessage(SlackMessage message)
+        internal async Task<Message> GetGambotMessage(MessageEvent e)
         {
-            var direct = message.ChatHub.Type == SlackChatHubType.DM;
-            var action = message.MessageSubType == SlackMessageSubType.MeMessage;
+            var direct = e.ChannelType == "im";
+            var action = e.Subtype == "me_message";
             var addressed = false;
-            var text = message.Text;
+            var text = e.Text;
             string to = null;
 
             if (direct)
@@ -151,10 +231,10 @@ namespace Gambot.IO.Slack
                 addressed = true;
                 text = text.Substring(8);
             }
-            if (message.MentionsBot)
+            if (_botMention.Match(text).Success)
             {
                 addressed = true;
-                text = text.Replace($"<@{_connection.Self.Id}>", "");
+                text = text.Replace($"<@{_userId}>", "");
             }
 
             if (addressed)
@@ -180,17 +260,8 @@ namespace Gambot.IO.Slack
                 }
             }
 
-            return new Message(addressed, direct, action, text.Trim(), message.ChatHub.Id, new SlackPerson(message.User) { IsActive = true }, to, this);
-        }
-
-        private void UpdateMessageHistory(Message message)
-        {
-            var channelHistory = _history.GetOrAdd(message.Channel, new ConcurrentQueue<Message>());
-            channelHistory.Enqueue(message);
-            while (channelHistory.Count > 100)
-                if (!channelHistory.TryDequeue(out var _))
-                    break;
-            _lastSeen.AddOrUpdate(message.From.Id, DateTime.Now, (s, d) => DateTime.Now);
+            var person = await GetCachedPerson(e.User);
+            return new Message(addressed, direct, action, text.Trim(), e.Channel, person, to, this);
         }
     }
 }

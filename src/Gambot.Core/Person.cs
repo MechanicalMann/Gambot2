@@ -13,5 +13,16 @@ namespace Gambot.Core
         {
             return Mention;
         }
+
+        public Person() { }
+
+        public Person(Person person)
+        {
+            Id = person.Id;
+            Name = person.Name;
+            IsActive = person.IsActive;
+            IsAdmin = person.IsAdmin;
+            Mention = person.Mention;
+        }
     }
 }
